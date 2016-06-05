@@ -1,0 +1,6 @@
+{
+    "require": {
+        "filp/whoops": "^2.0",
+        "symfony/var-dumper": "^3.0"
+    }
+}
