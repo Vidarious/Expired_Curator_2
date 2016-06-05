@@ -23,3 +23,6 @@ The thrown error is an Exception() object.
 
 ######Error \#1: Unable to connect to database.
 Curator Database is unable to connect to the designated database. Check your configuration information and ensure the database server is up and running.
+
+######Error \#2: Please contact the website administrator.
+No database statement was passed to Curator Database to be prepared -> prepareStatement(). Error message is standardized for end user purposes.
