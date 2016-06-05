@@ -38,3 +38,6 @@ Unable to bind provided data to PDO statement. -> BindValue().
 
 ######Error \#6: Unable to process your request.
 No prepared statement to execute. -> ExecuteQuery().
+
+######Error \#7: Unable to process your request.
+Execution of prepared statement failed. -> ExecuteQuery().
