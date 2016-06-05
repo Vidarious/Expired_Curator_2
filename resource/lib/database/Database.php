@@ -1,17 +1,17 @@
 <?php
 /*
- * Curator\Database is a library for managing database communication for any PHP based application.
+ * Curator Database is a library for managing database communication for any PHP based application.
  *
- * Naming Practices
- * ----------------
+ * Naming Convention
+ * -----------------
  * Classes    -> lower_case
  * Methods    -> PascalCase
  * Properties -> camelCase
  * Constants  -> UPPER_CASE
  *
- * PHP Version 7.0.6
+ * Written with PHP Version 7.0.6
  *
- * @package    Curator\Database
+ * @package    Curator Database
  * @author     James Druhan <jdruhan.home@gmail.com>
  * @copyright  2016 James Druhan
  * @version    1.0
@@ -36,139 +36,176 @@ class database
         }
         catch(PDOException $pdoError)
         {
-            error_log('Curator\Database generated an error: ' . $pdoError);
+            error_log('Curator Database generated an error: ' . $pdoError, 1);
+
+            throw new Exception("Error: Unable to connect to database.", 1);
         }
     }
 
-//Singleton design.
-private function __clone() {}
+    //Singleton design.
+    private function __clone() {}
+    private function __wakeup() {}
 
-//Singleton design.
-private function __wakeup() {}
-
-//Builds PDO connection string depending on PDO driver selected.
-private function GetServerString()
-{
-    $serverString = NULL;
-
-    switch(DRIVER)
+    //Builds PDO connection string depending on PDO driver selected.
+    private function GetServerString()
     {
-        case 'MySQL':
-            $serverString = 'mysql:host=' . HOST . ';dbname=' . DATABASE_NAME;
-            break;
+        $serverString = NULL;
+
+        switch(DRIVER)
+        {
+            case 'MySQL':
+                return('mysql:host=' . HOST . ';dbname=' . DATABASE_NAME);
+        }
     }
 
-    return($serverString);
-}
+    //Returns the singleton instance of the database connection.
+    public static function GetConnection()
+    {
+        static $pdoInstance = NULL;
 
-//Returns the singleton instance of the database connection. Singleton design.
-public static function getConnection()
-{
-static $pdoInstance = NULL;
+        if($pdoInstance === NULL)
+        {
+            $pdoInstance = new static();
+        }
 
-if($pdoInstance === NULL)
-{
-$pdoInstance = new static();
-}
+        return $pdoInstance;
+    }
 
-return $pdoInstance;
-}
+    //Prepares database query using PDO.
+    public function PrepareStatement($statement = NULL)
+    {
+        //Verify data has been provided to the function.
+        if(empty($statement))
+        {
+            error_log('Curator Database generated an error: ' . $pdoError, 1);
 
-//Prepares SQL query using PDO.
-public function prepareStatement($statement = NULL)
-{
-if(!empty($statement))
-{
-if(!$this->preparedStatement = $this->Connection->prepare($statement))
-{
-$logMessage = new \Curator\Application\Log(__CLASS__, __METHOD__);
-$logMessage->saveError(LANG\ERROR_PREPARE . $statment);
-}
-}
-}
+            throw new Exception("Error: Unable to process your request.", 2);
+        }
+        else
+        {
+            //Prepare the statement.
+            try
+            {
+                $this->preparedStatement = $this->databaseConnection->prepare($statement);
+            }
+            catch (Exception $pdoError)
+            {
+                error_log('Curator Database generated an error: ' . $pdoError, 1);
 
-//Binds value to parameter with the passed type.
-public function bindValue($parameter = NULL, $value = NULL, $type = NULL)
-{
-if(!empty($parameter) && !empty($value))
-{
-if(empty($type))
-{
-$type = self::getType($value);
-}
+                throw new Exception("Error: Unable to process your request.", 3);
+            }
+        }
+    }
 
-if(!$this->preparedStatement->bindValue($parameter, $value, $type))
-{
-$logMessage = new \Curator\Application\Log(__CLASS__, __METHOD__);
-$logMessage->saveError(LANG\ERROR_BIND . 'Parameter: ' . $parameter . ', Value: ' . $value . ', Type: ' . $type);
-}
-}
-}
+    //Binds value to prepared statement parameter.
+    public function BindValue($parameter = NULL, $value = NULL, $type = NULL)
+    {
+        //Verify data has been provided to function.
+        if(empty($parameter))
+        {
+            error_log('Curator Database generated an error: ' . $pdoError, 1);
 
-//Determine the type of the value (INT/BOOL/STR) and return.
-private function getType($value = NULL)
-{
-switch(TRUE)
-{
-case is_int($value) :
-$type = \PDO::PARAM_INT;
-break;
-case is_bool($value):
-$type = \PDO::PARAM_BOOL;
-break;
-case is_null($value):
-$type = \PDO::PARAM_NULL;
-break;
-default:
-$type = \PDO::PARAM_STR;
-}
+            throw new Exception("Error: Unable to process your request.", 4);
+        }
+        else
+        {
+            //Assign a data type if one is not provided.
+            if(empty($type))
+            {
+                $type = self::GetType($value);
+            }
 
-return $type;
-}
+            //Bind the parameter to the prepared statement.
+            try
+            {
+                $this->preparedStatement->bindValue($parameter, $value, $type);
+            }
+            catch (Exception $pdoError)
+            {
+                error_log('Curator Database generated an error: ' . $pdoError, 1);
 
-//Execute the PDO prepared statement.
-public function executeQuery()
-{
-if(empty($this->preparedStatement) || empty($this->preparedStatement->execute()))
-{
-$logMessage = new \Curator\Application\Log(__CLASS__, __METHOD__);
-$logMessage->saveError(LANG\ERROR_EXECUTE);
-}
-}
+                throw new Exception("Error: Unable to process your request.", 5);
+            }
+        }
+    }
 
-//Executes a SQL query (SELECT) and returns a single row.
-public function getResultSingle()
-{
-return($this->preparedStatement->fetch(\PDO::FETCH_ASSOC));
-}
+    //Determine the parameter data type (INT/BOOL/NULL/STR).
+    private function GetType($value = NULL)
+    {
+        switch(TRUE)
+        {
+            case is_int($value) :
+                return(\PDO::PARAM_INT);
+            case is_bool($value):
+                return(\PDO::PARAM_BOOL);
+            case is_null($value):
+                return(\PDO::PARAM_NULL);
+            default:
+                return(\PDO::PARAM_STR);
+        }
+    }
 
-//Executes a SQL query (SELECT) and returns many rows.
-public function getResultMany()
-{
-return($this->preparedStatement->fetchAll(\PDO::FETCH_ASSOC));
-}
+    //Executes the prepared statement.
+    public function ExecuteQuery()
+    {
+        if(empty($this->preparedStatement))
+        {
+            error_log('Curator Database generated an error: ' . $pdoError, 1);
 
-//Executes a SQL query (SELECT) and returns a single column item with $row representing which result row.
-public function getResultColumn($row = NULL)
-{
-if($row)
-{
-return($this->preparedStatement->fetchColumn($row));
-}
+            throw new Exception("Error: Unable to process your request.", 6);
+        }
+        try
+        {
+            $this->preparedStatement->execute();
+        }
+        catch (Exception $pdoError)
+        {
+            error_log('Curator Database generated an error: ' . $pdoError, 1);
 
-return($this->preparedStatement->fetchAll(\PDO::FETCH_COLUMN));
-}
+            throw new Exception("Error: Unable to process your request.", 7);
+        }
+    }
 
-//Returns the row count for the executed query result.
-public function getRowCount()
-{
-return($this->preparedStatement->rowCount());
-}
+    //Returns an array which contains the next row from the executed statement.
+    public function GetSingleRow()
+    {
+        return($this->preparedStatement->fetch(\PDO::FETCH_ASSOC));
+    }
 
-//Returns the row ID of the previously inserted record.
-public function getInsertedID()
-{
-return($this->Connection->lastInsertId());
-}
+    //Returns an array which contains all rows of the executed statement.
+    public function GetAllRows()
+    {
+        return($this->preparedStatement->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
+    //Returns the requested column from the next result row.
+    public function GetColumn($index = NULL)
+    {
+        return($this->preparedStatement->fetchColumn($index));
+    }
+
+    //Returns the number of rows affected by the executed statement.
+    public function GetRowCount()
+    {
+        return($this->preparedStatement->rowCount());
+    }
+
+    //Returns the number of columns affected by the executed statement.
+    public function GetColumnCount()
+    {
+        return($this->preparedStatement->columnCount());
+    }
+
+    //Returns the ID of the last inserted row.
+    public function GetInsertedID()
+    {
+        return($this->databaseConnection->lastInsertId());
+    }
+
+    //Returns the prepared statement for manual PDO control.
+    public function GetPreparedStatement()
+    {
+        return($this->preparedStatement);
+    }
 }
 ?>

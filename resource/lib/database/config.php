@@ -1,17 +1,10 @@
 <?php
 /*
- * Curator\Database configuration file.
+ * Curator Database configuration file.
  *
- * Naming Practices
- * ----------------
- * Classes    -> lower_case
- * Methods    -> PascalCase
- * Properties -> camelCase
- * Constants  -> UPPER_CASE
+ * Written with PHP Version 7.0.6
  *
- * PHP Version 7.0.6
- *
- * @package    Curator\Database
+ * @package    Curator Database
  * @author     James Druhan <jdruhan.home@gmail.com>
  * @copyright  2016 James Druhan
  * @version    1.0
