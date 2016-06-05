@@ -26,3 +26,6 @@ Curator Database is unable to connect to the designated database. Check your con
 
 ######Error \#2: Please contact the website administrator.
 No database statement was passed to Curator Database to be prepared -> prepareStatement(). Error message is standardized for end user purposes.
+
+######Error \#3: Please contact the website administrator.
+Bad database query. PDO was unable to prepare the query -> prepareStatement(). Error message is standardized for end user purposes.
