@@ -12,7 +12,7 @@ June 4, 2016
 ---
 
 #####Description
-This application manages the communication between your PHP application and database. This application is developed with the Singleton design pattern to prevent multiple instances of the database connection.
+Curator Database is a wrapper application for PDO class. Designed with the singleton pattern only one instances of the Curator Database object can exist thus preventing multiple database connections for a single user.
 
 #####How To Use
 
@@ -24,8 +24,8 @@ The thrown error is an Exception() object.
 ######Error \#1: Unable to connect to database.
 Curator Database is unable to connect to the designated database. Check your configuration information and ensure the database server is up and running.
 
-######Error \#2: Please contact the website administrator.
+######Error \#2: Unable to process your request.
 No database statement was passed to Curator Database to be prepared -> prepareStatement(). Error message is standardized for end user purposes.
 
-######Error \#3: Please contact the website administrator.
+######Error \#3: Unable to process your request.
 Bad database query. PDO was unable to prepare the query -> prepareStatement(). Error message is standardized for end user purposes.
