@@ -18,6 +18,9 @@
  */
 namespace Curator\Database;
 
+//Curator Database configuration file. If this file is moved outside the PUBLIC accessable directory update this path.
+require_once('config.php');
+
 class database
 {
     //Class Properties (Object).
