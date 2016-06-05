@@ -12,7 +12,7 @@ June 4, 2016
 ---
 
 #####Description
-Curator Database is a wrapper application for PDO class. Designed with the singleton pattern only one instances of the Curator Database object can exist thus preventing multiple database connections for a single user.
+Curator Database is a wrapper application for the PDO class. Designed with the singleton pattern, only one instances of the Curator Database object can exist, thus preventing multiple database connections for a single user.
 
 #####How To Use
 
