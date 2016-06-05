@@ -31,7 +31,10 @@ No database statement was passed to Curator Database to be prepared -> PrepareSt
 Bad database query. PDO was unable to prepare the query -> PrepareStatement().
 
 ######Error \#4: Unable to process your request.
-No parameter or value to bind to statement -> BindValue().
+No parameter to bind to statement -> BindValue().
 
 ######Error \#5: Unable to process your request.
 Unable to bind provided data to PDO statement. -> BindValue().
+
+######Error \#6: Unable to process your request.
+No prepared statement to execute. -> ExecuteQuery().
