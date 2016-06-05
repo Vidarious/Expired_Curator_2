@@ -32,3 +32,6 @@ Bad database query. PDO was unable to prepare the query -> PrepareStatement().
 
 ######Error \#4: Unable to process your request.
 No parameter or value to bind to statement -> BindValue().
+
+######Error \#5: Unable to process your request.
+Unable to bind provided data to PDO statement. -> BindValue().
