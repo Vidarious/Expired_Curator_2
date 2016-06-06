@@ -66,7 +66,7 @@ $myDatabase = \Curator\Database::GetConnection();
 
 * * *
 
-###### <a id="database1"></a>Prepare a SQL statement
+## <a id="database1"></a>Prepare a SQL statement
 ```php
 public void database::PrepareStatement ([ string $statement = NULL ] )
 ```
@@ -92,7 +92,7 @@ catch (Exception $e)
 
 [Back to Top](#topMethods)
 
-###### <a id="database3"></a>Bind values to a prepared statement
+## <a id="database3"></a>Bind values to a prepared statement
 
 ```php
 public void database::BindValue ([ string $parameter = NULL, string $value = NULL, string $type = NULL ] )
@@ -138,7 +138,7 @@ catch (Exception $e)
 
 [Back to Top](#topMethods)
 
-###### <a id="database4"></a>Execute a prepared statement
+## <a id="database4"></a>Execute a prepared statement
 ```php
 public void database::ExecuteQuery ([ NULL ] )
 ```
@@ -160,7 +160,7 @@ catch (Exception $e)
 
 [Back to Top](#topMethods)
 
-##### <a id="database5"></a>Retrieve a **single row** from executed query
+## <a id="database5"></a>Retrieve a **single row** from executed query
 ```php
 public void database::GetSingleRow ([ NULL ] )
 ```
@@ -192,7 +192,7 @@ Array
 
 [Back to Top](#topMethods)
 
-###### <a id="database6"></a>Retrieve **many rows** from executed query
+## <a id="database6"></a>Retrieve **many rows** from executed query
 ```php
 public void database::GetAllRows ([ NULL ] )
 ```
@@ -232,7 +232,7 @@ Array
 
 [Back to Top](#topMethods)
 
-###### <a id="database7"></a>Retrieve a **single column** from executed query
+## <a id="database7"></a>Retrieve a **single column** from executed query
 ```php
 public void database::GetColumn ([ int $index ] )
 ```
@@ -258,7 +258,7 @@ This command uses the fetchColumn() method. If no index is provided it will retu
 
 [Back to Top](#topMethods)
 
-###### <a id="database8"></a>Get the row count of the executed statement
+## <a id="database8"></a>Get the row count of the executed statement
 ```php
 public void database::GetRowCount ([ NULL ] )
 ```
@@ -271,7 +271,7 @@ $rows = $myDatabase->GetRowCount();
 
 [Back to Top](#topMethods)
 
-###### <a id="database10"></a>Get the column count of the executed statement
+## <a id="database10"></a>Get the column count of the executed statement
 ```php
 public void database::GetColumnCount ([ NULL ] )
 ```
@@ -284,7 +284,7 @@ $columns = $myDatabase->GetColumnCount();
 
 [Back to Top](#topMethods)
 
-###### <a id="database9"></a>Get the ID of the last inserted row for the executed statement
+## <a id="database9"></a>Get the ID of the last inserted row for the executed statement
 ```php
 public void database::GetInsertedID ([ NULL ] )
 ```
@@ -297,7 +297,7 @@ $lastID = $myDatabase->GetInsertedID();
 
 [Back to Top](#topMethods)
 
-###### <a id="database11"></a>Get the prepared statement to use other PDO functions.
+## <a id="database11"></a>Get the prepared statement to use other PDO functions.
 ```php
 public void database::GetPreparedStatement ([ NULL ] )
 ```
