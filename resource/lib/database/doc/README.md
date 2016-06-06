@@ -1,5 +1,8 @@
 #Curator Database
 
+####Version
+v1.0
+
 ####Author
 James Druhan
 
@@ -12,12 +15,12 @@ June 4, 2016
 ---
 
 ####Description
-Curator Database is a wrapper class for the PDO class. Designed with the singleton pattern, only one instances of the Curator Database object can exist at a time, thus preventing multiple database connections for a single user.
+Curator Database is a wrapper class for the PDO class. Designed with the singleton pattern, only one instances of the Curator Database object can exist at a time. This prevents multiple database connections for a single user.
 
 ---
 
 ####How To Use
-This application includes error handling but not error displaying. Read the "Error Handling" part of this readme for more information. In the examples below you will be provided with try/catch included however these are not required if you don't want to manage database errors.
+This application includes error handling but not error displaying. Read the "Error Handling" part of this readme for more information. In the examples below you will be provided with try/catch included, however these are not required if you don't want to manage database errors.
 
 #####Configuration
 The config.php file holds your driver choice and database details. Your first step is to modify these constants. By default, Curator Database includes the config file from the same directory Curator Database (database.php) is found. However for added security it is recommended to store the config.php file in a directory not accessable to other users. If you decide to move the config.php file, be sure to update database.php to reflect that change in path.
@@ -53,9 +56,9 @@ $myDatabase = \Curator\Database::GetConnection();
   - [Prepare a SQL statement](#database1)
   - [Bind values to a prepared statement](#database3)
   - [Execute a prepared statement](#database4)
-  - [Retrieve a single row result from executed query](#database5)
-  - [Retrieve a many row result from executed query](#database6)
-  - [Retrieve a single column result from executed query](#database7)
+  - [Retrieve a single row from executed query](#database5)
+  - [Retrieve many rows from executed query](#database6)
+  - [Retrieve a single column from executed query](#database7)
   - [Get the row count of the executed statement](#database8)
   - [Get the column count of the executed statement](#database10)
   - [Get the ID of the last inserted row for the executed statement](#database9)
@@ -68,7 +71,8 @@ $myDatabase = \Curator\Database::GetConnection();
 public void database::PrepareStatement ([ string $statement = NULL ] )
 ```
 
-Before you can execute a SQL command you must first prepare the statement. This safeguards you against SQL injection.
+Before you can execute a SQL command you must first prepare the statement.
+
 ```php
 $name = 'James';
 $age = 30;
@@ -125,14 +129,14 @@ catch (Exception $e)
 }
 ```
 
-**NOTE**: If $type is not specified the method will first identify the variable passed and properly associate the type:
+**NOTE**: If $type is not specified, the method will first identify the variable passed and properly associate the type:
 
 - Integer: PARAM_INT
 - Boolean: PARAM_BOOL
 - Null (Empty): PARAM_NULL
 - String (Default): PARAM_STR
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
 ###### <a id="database4"></a>Execute a prepared statement
 ```php
@@ -154,9 +158,9 @@ catch (Exception $e)
 
 **NOTE**: This method does not return any value. It executes the prepared statement and performs your query.
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
-##### <a id="database5"></a>Retrieve a **single row** result from executed query
+##### <a id="database5"></a>Retrieve a **single row** from executed query
 ```php
 public void database::GetSingleRow ([ NULL ] )
 ```
@@ -186,9 +190,9 @@ Array
 )
 ```
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
-###### <a id="database6"></a>Retrieve a **many row** result from executed query
+###### <a id="database6"></a>Retrieve **many rows** from executed query
 ```php
 public void database::GetAllRows ([ NULL ] )
 ```
@@ -226,9 +230,9 @@ Array
 )
 ```
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
-###### <a id="database7"></a>Retrieve a single **column** result from executed query
+###### <a id="database7"></a>Retrieve a **single column** from executed query
 ```php
 public void database::GetColumn ([ int $index ] )
 ```
@@ -243,16 +247,16 @@ $myDatabase->ExecuteQuery();
 
 $data = $myDatabase->GetColumn(1);
 
-echo 'The name is: ' . $data;
+echo 'The age is: ' . $data;
 
 ---
 
-The name is: James
+The age is: 30
 ```
 
 This command uses the fetchColumn() method. If no index is provided it will return the first column (0). You can run this command repeatily to interate through each row of your results.
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
 ###### <a id="database8"></a>Get the row count of the executed statement
 ```php
@@ -265,6 +269,8 @@ To find out how many rows were affected by your query use the GetRowCount() meth
 $rows = $myDatabase->GetRowCount();
 ```
 
+[Back to Top](#topMethods)
+
 ###### <a id="database10"></a>Get the column count of the executed statement
 ```php
 public void database::GetColumnCount ([ NULL ] )
@@ -276,7 +282,7 @@ To find out how many columns were affected by your query use the GetColumnCount(
 $columns = $myDatabase->GetColumnCount();
 ```
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
 ###### <a id="database9"></a>Get the ID of the last inserted row for the executed statement
 ```php
@@ -289,20 +295,20 @@ If using the INSERT query you can obtain the last inserted ID by using the GetIn
 $lastID = $myDatabase->GetInsertedID();
 ```
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
 ###### <a id="database11"></a>Get the prepared statement to use other PDO functions.
 ```php
 public void database::GetPreparedStatement ([ NULL ] )
 ```
 
-For advanced PDO functions use you obtain the prepared statement object using the GetPreparedStatement() method.
+For advanced PDO functions you can obtain the prepared statement objaect using the GetPreparedStatement() method.
 
 ```php
 $pStatement = $myDatabase->GetPreparedStatement();
 ```
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
 ####Error Handling
 Curator Database both logs errors to the PHP server log and throws errors to your application. Curator Database will NOT display any errors or use die() to stop run time. These tasks are left to the parent application developer. Using try{} and catch{} are recommended when performing Curator Database functions.
