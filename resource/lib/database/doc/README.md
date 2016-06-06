@@ -52,6 +52,8 @@ In order to open the connection to your database you must create an object of th
 $myDatabase = \Curator\Database::GetConnection();
 ```
 
+---
+
 #####<a id="topMethods"></a>Methods
   - [Prepare a SQL statement](#database1)
   - [Bind values to a prepared statement](#database3)
