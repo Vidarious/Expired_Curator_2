@@ -312,6 +312,8 @@ $pStatement = $myDatabase->GetPreparedStatement();
 
 [Back to Top](#topMethods)
 
+---
+
 ####Error Handling
 Curator Database both logs errors to the PHP server log and throws errors to your application. Curator Database will NOT display any errors or use die() to stop run time. These tasks are left to the parent application developer. Using try{} and catch{} are recommended when performing Curator Database functions.
 
