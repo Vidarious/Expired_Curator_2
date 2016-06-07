@@ -14,7 +14,15 @@ James Druhan
   - [Error Management](#error)
 
 ### <a id="config"></a>Configuration
-Your Curator Database configuration file (config.php) holds the login credentials to your database. Because of this, it is not uncommon for developers to want to store this file outside of the web server public root directory. In some cases, hosting services do not allow you to store files outside of this public directory.
+Your Curator Database configuration file (config.php) holds the login credentials to your database. Because of this, it is not uncommon for developers to want to store this file outside of the web server public root directory. This adds an additional layer of protection (in some cases). That is not to say if you keep the config.php file in its script default location it is not secure. 
+
+While the file contents will not be accessable via a browser, if someone should gain direct access to your public directory via malicious means, by storing it outside this directory, the config file and its contents will still be secure. Regardless, if someone should gain administrative access to your web server (the same access you have) all bets are off and your information is exposed.
+
+In some cases, hosting services do not allow you to store files outside of the public directory. Don't be concerned, simply keep the config.php file with the Curator Database class file. If you do decide to store the config.php file in a different location than its default, it is important to update the Curator Database database.php file of its path.
+
+```php
+require_once('config.php');
+```
 
 ### <a id="usage"></a>Usage
 
