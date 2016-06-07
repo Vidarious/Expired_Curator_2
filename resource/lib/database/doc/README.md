@@ -1,25 +1,25 @@
 #Curator Database
+This class is a wrapper class for the PHP/PDO extension. Originally developed for the Curator application (user management), it operates independantly and fits well into any PHP application interacting with a database. Curator Database offers a simple and secure way to perform your database queries.
 
-####Version
+#####Version
 v1.0
 
-####Author
+#####Author
 James Druhan
 
-####Start Date
-January 16, 2016
-
-####First Rehash
-June 4, 2016
-
 ---
 
-####Description
-Curator Database is a wrapper class for the PDO class. Designed with the singleton pattern, only one instances of the Curator Database object can exist at a time. This prevents multiple database connections for a single user.
+  - [Configuration](#config)
+  - [Usage](#usage)
+  - [Error Management](#error)
 
----
+### <a id="config"></a>Configuration
 
-####How To Use
+### <a id="usage"></a>Usage
+
+### <a id="error"></a>Error Management
+
+##How To Use
 This application includes error handling but not error displaying. Read the "Error Handling" part of this readme for more information. In the examples below you will be provided with try/catch included, however these are not required if you don't want to manage database errors.
 
 #####Configuration
