@@ -14,6 +14,7 @@ James Druhan
   - [Error Management](#error)
 
 ### <a id="config"></a>Configuration
+Your Curator Database configuration file (config.php) holds the login credentials to your database. Because of this, it is not uncommon for developers to want to store this file outside of the web server public root directory. In some cases, hosting services do not allow you to store files outside of this public directory.
 
 ### <a id="usage"></a>Usage
 
