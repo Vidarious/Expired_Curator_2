@@ -13,20 +13,46 @@ James Druhan
   - [Usage](#usage)
   - [Error Management](#error)
 
+---
+
 ### <a id="config"></a>Configuration
-Your Curator Database configuration file (config.php) holds the login credentials to your database. Because of this, it is not uncommon for developers to want to store this file outside of the web server public root directory. This adds an additional layer of protection (in some cases). That is not to say if you keep the config.php file in its script default location it is not secure. 
+The Curator Database configuration file (config.php) holds the login credentials to your database. Because of this, it is not uncommon for developers to store this file outside of the web server public root directory. This adds an additional layer of protection (in some cases). That is not to say if you keep the config.php file in its script default location it is not secure. 
 
-While the file contents will not be accessable via a browser, if someone should gain direct access to your public directory via malicious means, by storing it outside this directory, the config file and its contents will still be secure. Regardless, if someone should gain administrative access to your web server (the same access you have) all bets are off and your information is exposed.
+While the file contents will not be accessable via a browser, if someone were to gain access to your public directory, by storing it outside this directory the config file and its contents will still be secure. However, if someone should gain administrative access to your web server (the same access you have) all bets are off and your information is exposed.
 
-In some cases, hosting services do not allow you to store files outside of the public directory. Don't be concerned, simply keep the config.php file with the Curator Database class file. If you do decide to store the config.php file in a different location than its default, it is important to update the Curator Database database.php file of its path.
+In some cases, hosting services do not allow you to store files outside of the public directory. Don't be concerned, simply keep the config.php file with the Curator Database class file. If you do decide to store the config.php file in a different location than its default, you must update the Curator Database database.php file of its path.
 
 ```php
 require_once('config.php');
 ```
 
+---
+
 ### <a id="usage"></a>Usage
 
+
+---
+
 ### <a id="error"></a>Error Management
+Curator Database suppresses PHP & PDO errors and instead throws custom errors of its own to your application. Curator Database will NOT display any errors or use die() to stop run time. This is intentional and prevents revealing potentially sensitive data in your queries or connection information. It is recommended you implement your own error handling processes. As such, using try{} and catch{} are recommended when performing Curator Database functions.
+
+If you decide not to manage Curator Database errors your application will stop operating silently (no messages).
+
+**PHP 7 Note**
+
+>All Curator Database methods will throw Error() objects. This is a new PHP 7 base class and is caught by using 'Throwable'.
+
+```php
+try
+{
+    //Curator Database Method
+}
+catch(Throwable $t)
+{
+    //Your error handling here.
+    echo $t->getMessage();
+}
+```
 
 ##How To Use
 This application includes error handling but not error displaying. Read the "Error Handling" part of this readme for more information. In the examples below you will be provided with try/catch included, however these are not required if you don't want to manage database errors.
@@ -58,7 +84,15 @@ require_once('database/database.php');
 In order to open the connection to your database you must create an object of the class. As Curator Database is designed with a singleton pattern you do this via a method.
 
 ```php
-$myDatabase = \Curator\Database::GetConnection();
+try
+{
+    $myDatabase = \Curator\Database\App::GetConnection();
+}
+catch(Throwable $t)
+{
+    //Your error handling here.
+    echo $t->getMessage();
+}
 ```
 
 ---
@@ -323,28 +357,3 @@ $pStatement = $myDatabase->GetPreparedStatement();
 
 ---
 
-####Error Handling
-Curator Database both logs errors to the PHP server log and throws errors to your application. Curator Database will NOT display any errors or use die() to stop run time. These tasks are left to the parent application developer. Using try{} and catch{} are recommended when performing Curator Database functions.
-
-The thrown error is an Exception() object. All error messages are suppressed to a generic statement which is user friendly. No PHP/PDO error data is displayed. Instead the PHP/PDO data is recorded to the PHP log.
-
-#####Error \#1
-Curator Database is unable to connect to the designated database. Check your configuration information and ensure the database server is up and running.
-
-######Error \#2
-No database statement was passed to Curator Database to be prepared -> PrepareStatement().
-
-######Error \#3
-Bad database query. PDO was unable to prepare the query -> PrepareStatement().
-
-######Error \#4
-No parameter to bind to statement -> BindValue().
-
-######Error \#5
-Unable to bind provided data to PDO statement. -> BindValue().
-
-######Error \#6
-No prepared statement to execute. -> ExecuteQuery().
-
-######Error \#7
-Execution of prepared statement failed. -> ExecuteQuery().
