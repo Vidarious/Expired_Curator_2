@@ -11,13 +11,6 @@
  */
     namespace Curator\Classes;
 
-    //Deny direct access to file.
-    if(!defined('Curator\Config\APPLICATION'))
-    {
-        header("Location: " . "http://" . filter_var($_SERVER['HTTP_HOST'], FILTER_SANITIZE_URL));
-        die();
-    }
-
     use \Curator\Config  as CONFIG;
     use \Curator\Traits  as TRAITS;
     use \Curator\Classes as CLASSES;

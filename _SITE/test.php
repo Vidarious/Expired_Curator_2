@@ -1,5 +1,5 @@
 <?php
-   require_once('../resource/lib/database/database.php');
+   require_once('../resource/lib/session/session.php');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -16,45 +16,7 @@
    <body>
       <div class="container-fluid">
           <?php
-            $name = 'Doug';
-            $age = 29;
-            $statement = "INSERT INTO test (name, age) VALUES (:variable1, :variable2)";
 
-            //$statement = "SELECT * FROM test";
-
-            try
-            {
-                //Open DB Connection.
-                $myDatabase = \Curator\Database\App::GetConnection();
-
-                //Prepare the SQL query.
-                $myDatabase->PrepareStatement($statement);
-
-                //Bind values to the query.
-                $myDatabase->BindValue('variable1', $name); //Type not defined.
-                $myDatabase->BindValue('variable2', $age, PDO::PARAM_INT); //Type defined.
-
-                //Execute the query.
-                $myDatabase->ExecuteQuery();
-
-                //var_dump($myDatabase->GetSingleRow());
-                //var_dump($myDatabase->GetSingleRow());
-                //var_dump($myDatabase->GetSingleRow());
-
-                //var_dump($myDatabase->GetAllRows());
-
-                //var_dump($myDatabase->GetColumn());
-
-                //echo 'Rows: ' . $myDatabase->GetRowCount();
-
-                //echo 'Columns: ' . $myDatabase->GetColumnCount();
-
-                echo 'Last ID: ' . $myDatabase->GetInsertedID();
-            }
-            catch(Throwable $t)
-            {
-                echo $t->getMessage();
-            }
            ?>
       </div>
       <!-- JavaScript Inserts -->
