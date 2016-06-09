@@ -275,7 +275,7 @@ public void App::GetAllRows ([ NULL ] )
 If you are expecting many rows to be returned from your query it is suggested to use the **GetAllRows** method. This returns all of the data from your query in one multi-dimentional array.
 
 ```php
-$statement = "SELECT * FROM test";
+$statement = "SELECT * FROM TABLE_NAME";
 
 try
 {
@@ -337,24 +337,43 @@ array(5)
 public void App::GetColumn ([ int $index ] )
 ```
 
-If using a SELECT query you can retrieve a specific column from the returned data using the GetColumn($index) function. Enter the position of the column (0 for the first column and so on) as the $index.
+If using a SELECT query you can retrieve a specific column from the returned data using the **GetColumn($index)** function. Enter the position of the column (0 for the first column and so on) as the $index. Executing this method more than once will iterate through the returned rows.
 
 ```php
-$statement = 'SELECT * from USERS';
+$statement = "SELECT * FROM TABLE_NAME";
 
-$myDatabase->PrepareStatment($statement);
-$myDatabase->ExecuteQuery();
-
-$data = $myDatabase->GetColumn(1);
-
-echo 'The age is: ' . $data;
-
----
-
-The age is: 30
+try
+{
+    //Open DB Connection.
+    $myDatabase = \Curator\Database\App::GetConnection();
+    
+    //Prepare the SQL query.
+    $myDatabase->PrepareStatement($statement);
+    
+    //Execute the query.
+    $myDatabase->ExecuteQuery();
+    
+    //Show only the 0 (name) column.
+    var_dump($myDatabase->GetColumn(0));
+    var_dump($myDatabase->GetColumn(0));
+    var_dump($myDatabase->GetColumn(0));
+}
+catch(Throwable $t)
+{
+    //Process error.
+}
 ```
 
-This command uses the fetchColumn() method. If no index is provided it will return the first column (0). You can run this command repeatily to interate through each row of your results.
+**Will Output**
+
+```php
+string(6) "Aprile"
+string(4) "Tina"
+string(5) "Debra"
+```
+
+**NOTE**
+>This method uses the fetchColumn() method. If no index is provided it will return the first column (0).
 
 [[Back to Top]](#topMethods)
 
@@ -363,10 +382,35 @@ This command uses the fetchColumn() method. If no index is provided it will retu
 public void App::GetRowCount ([ NULL ] )
 ```
 
-To find out how many rows were affected by your query use the GetRowCount() method.
+The **GetRowCount** method will return the total amount of rows returned by your query.
 
 ```php
-$rows = $myDatabase->GetRowCount();
+$statement = "SELECT * FROM TABLE_NAME";
+
+try
+{
+    //Open DB Connection.
+    $myDatabase = \Curator\Database\App::GetConnection();
+    
+    //Prepare the SQL query.
+    $myDatabase->PrepareStatement($statement);
+    
+    //Execute the query.
+    $myDatabase->ExecuteQuery();
+    
+    //Get the row count.
+    echo 'Rows: ' . $myDatabase->GetRowCount();
+}
+catch(Throwable $t)
+{
+    //Process error.
+}
+```
+
+**Will Output**
+
+```php
+Rows: 5
 ```
 
 [[Back to Top]](#topMethods)
@@ -376,10 +420,35 @@ $rows = $myDatabase->GetRowCount();
 public void App::GetColumnCount ([ NULL ] )
 ```
 
-To find out how many columns were affected by your query use the GetColumnCount() method.
+The **GetColumnCount** method will return the total amount of columns returned by your query.
 
 ```php
-$columns = $myDatabase->GetColumnCount();
+$statement = "SELECT * FROM TABLE_NAME";
+
+try
+{
+    //Open DB Connection.
+    $myDatabase = \Curator\Database\App::GetConnection();
+    
+    //Prepare the SQL query.
+    $myDatabase->PrepareStatement($statement);
+    
+    //Execute the query.
+    $myDatabase->ExecuteQuery();
+    
+    //Get the row count.
+    echo 'Columns: ' . $myDatabase->GetColumnCount();
+}
+catch(Throwable $t)
+{
+    //Process error.
+}
+```
+
+**Will Output**
+
+```php
+Columns: 2
 ```
 
 [[Back to Top]](#topMethods)
@@ -389,10 +458,41 @@ $columns = $myDatabase->GetColumnCount();
 public void App::GetInsertedID ([ NULL ] )
 ```
 
-If using the INSERT query you can obtain the last inserted ID by using the GetInsertedID() method.
+When using the INSERT command you can obtain the ID of the last inserted row of data.
 
 ```php
-$lastID = $myDatabase->GetInsertedID();
+$name = 'James';
+$age = 30;
+$statement = "INSERT INTO TABLE (name, age) VALUES (:variable1, :variable2)";
+
+try
+{
+    //Open DB Connection.
+    $myDatabase = \Curator\Database\App::GetConnection();
+    
+    //Prepare the SQL query.
+    $myDatabase->PrepareStatement($statement);
+    
+    //Bind values to the query.
+    $myDatabase->BindValue('variable1', $name); //Type not defined.
+    $myDatabase->BindValue('variable2', $age, PDO::PARAM_INT); //Type defined.
+    
+    //Execute the query.
+    $myDatabase->ExecuteQuery();
+    
+    //Get last inserted ID.
+    echo 'Last ID: ' . $myDatabase->GetInsertedID();
+}
+catch(Throwable $t)
+{
+    //Process error.
+}
+```
+
+**Will Output**
+
+```php
+Last ID: 5
 ```
 
 [[Back to Top]](#topMethods)
@@ -402,10 +502,31 @@ $lastID = $myDatabase->GetInsertedID();
 public void App::GetPreparedStatement ([ NULL ] )
 ```
 
-For advanced PDO functions you can obtain the prepared statement objaect using the GetPreparedStatement() method.
+For advanced users who wish to utilize other PDO functionality, you can get the statement object using the **GetPreparedStatement** method.
 
 ```php
-$pStatement = $myDatabase->GetPreparedStatement();
+$statement = "SELECT * FROM TABLE_NAME";
+
+try
+{
+    //Open DB Connection.
+    $myDatabase = \Curator\Database\App::GetConnection();
+    
+    //Prepare the SQL query.
+    $myDatabase->PrepareStatement($statement);
+    
+    //Execute the query.
+    $myDatabase->ExecuteQuery();
+    
+    //Get prepared statement object.
+    $pStatement = $myDatabase->GetPreparedStatement();
+    
+    //Custom PDO Code Here ...
+}
+catch(Throwable $t)
+{
+    //Process error.
+}
 ```
 
 [[Back to Top]](#topMethods)
