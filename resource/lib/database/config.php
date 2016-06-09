@@ -15,14 +15,14 @@ namespace Curator\Database;
 define('Curator\Database\DRIVER', 'MySQL');
 
 //Address of the database server.
-define('Curator\Database\HOST', 'HOST_ADDRESS_HERE');
+define('Curator\Database\HOST', 'localhost');
 
 //Name of the database to use.
-define('Curator\Database\DATABASE_NAME', 'DATABASE_NAME_HERE');
+define('Curator\Database\DATABASE_NAME', 'curator');
 
 //Login username for database server.
-define('Curator\Database\USERNAME', 'USERNAME_HERE');
+define('Curator\Database\USERNAME', 'temp');
 
 //Login password for database server.
-define('Curator\Database\PASSWORD', 'PASSWORD_HERE');
+define('Curator\Database\PASSWORD', 'temp');
 ?>
