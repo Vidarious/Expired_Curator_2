@@ -29,38 +29,24 @@ require_once('config.php');
 ---
 
 ### <a id="usage"></a>Usage
+This wrapper class includes error handling but not error displaying (see [Error Management](#error) for me details). Using Curator Database is simple. Review the following in order to understand each process.
 
+#####<a id="topMethods"></a>Methods
+  - [Namespace](#namespace)
+  - [Including the wrapper class](#include)
+  - [Creating your database object](#include)
+  - [Prepare a SQL statement](#prepare)
+  - [Bind values to a prepared statement](#bind)
+  - [Execute a prepared statement](#execute)
+  - [Retrieve a single row from executed query](#getsingle)
+  - [Retrieve many rows from executed query](#getmany)
+  - [Retrieve a single column from executed query](#getcolumn)
+  - [Get the row count of the executed statement](#getrowcount)
+  - [Get the column count of the executed statement](#getcolumncount)
+  - [Get the ID of the last inserted row for the executed statement](#lastid)
+  - [Get the prepared statement to use other PDO functions](#getstatement)
 
----
-
-### <a id="error"></a>Error Management
-Curator Database suppresses PHP & PDO errors and instead throws custom errors of its own to your application. Curator Database will NOT display any errors or use die() to stop run time. This is intentional and prevents revealing potentially sensitive data in your queries or connection information. It is recommended you implement your own error handling processes. As such, using try{} and catch{} are recommended when performing Curator Database functions.
-
-If you decide not to manage Curator Database errors your application will stop operating silently (no messages).
-
-**PHP 7 Note**
-
->All Curator Database methods will throw Error() objects. This is a new PHP 7 base class and is caught by using 'Throwable'.
-
-```php
-try
-{
-    //Curator Database Method
-}
-catch(Throwable $t)
-{
-    //Your error handling here.
-    echo $t->getMessage();
-}
-```
-
-##How To Use
-This application includes error handling but not error displaying. Read the "Error Handling" part of this readme for more information. In the examples below you will be provided with try/catch included, however these are not required if you don't want to manage database errors.
-
-#####Configuration
-The config.php file holds your driver choice and database details. Your first step is to modify these constants. By default, Curator Database includes the config file from the same directory Curator Database (database.php) is found. However for added security it is recommended to store the config.php file in a directory not accessable to other users. If you decide to move the config.php file, be sure to update database.php to reflect that change in path.
-
-#####Name Space
+### <a id="namespace"></a>Namespace
 Curator Database lives in the **Curator\\Database** namespace.
 
 ```php
@@ -73,14 +59,18 @@ The full path to this class would be:
 \Curator\Database
 ```
 
-#####Include Curator Database
+[Back to Top](#topMethods)
+
+### <a id="include"></a>Including the wrapper class
 As with every class, you must include the files necessary for the application. In the case of Curator Database you only need to include one.
 
 ```php
 require_once('database/database.php');
 ```
 
-#####Open Database Connection
+[Back to Top](#topMethods)
+
+### <a id="include"></a>Creating your database object
 In order to open the connection to your database you must create an object of the class. As Curator Database is designed with a singleton pattern you do this via a method.
 
 ```php
@@ -95,23 +85,9 @@ catch(Throwable $t)
 }
 ```
 
----
+[Back to Top](#topMethods)
 
-#####<a id="topMethods"></a>Methods
-  - [Prepare a SQL statement](#database1)
-  - [Bind values to a prepared statement](#database3)
-  - [Execute a prepared statement](#database4)
-  - [Retrieve a single row from executed query](#database5)
-  - [Retrieve many rows from executed query](#database6)
-  - [Retrieve a single column from executed query](#database7)
-  - [Get the row count of the executed statement](#database8)
-  - [Get the column count of the executed statement](#database10)
-  - [Get the ID of the last inserted row for the executed statement](#database9)
-  - [Get the prepared statement to use other PDO functions](#database11)
-
-* * *
-
-## <a id="database1"></a>Prepare a SQL statement
+### <a id="prepare"></a>Prepare a SQL statement
 ```php
 public void database::PrepareStatement ([ string $statement = NULL ] )
 ```
@@ -137,7 +113,7 @@ catch (Exception $e)
 
 [Back to Top](#topMethods)
 
-## <a id="database3"></a>Bind values to a prepared statement
+### <a id="bind"></a>Bind values to a prepared statement
 
 ```php
 public void database::BindValue ([ string $parameter = NULL, string $value = NULL, string $type = NULL ] )
@@ -183,7 +159,7 @@ catch (Exception $e)
 
 [Back to Top](#topMethods)
 
-## <a id="database4"></a>Execute a prepared statement
+### <a id="execute"></a>Execute a prepared statement
 ```php
 public void database::ExecuteQuery ([ NULL ] )
 ```
@@ -205,7 +181,7 @@ catch (Exception $e)
 
 [Back to Top](#topMethods)
 
-## <a id="database5"></a>Retrieve a **single row** from executed query
+### <a id="getsingle"></a>Retrieve a **single row** from executed query
 ```php
 public void database::GetSingleRow ([ NULL ] )
 ```
@@ -237,7 +213,7 @@ Array
 
 [Back to Top](#topMethods)
 
-## <a id="database6"></a>Retrieve **many rows** from executed query
+### <a id="getmany"></a>Retrieve **many rows** from executed query
 ```php
 public void database::GetAllRows ([ NULL ] )
 ```
@@ -277,7 +253,7 @@ Array
 
 [Back to Top](#topMethods)
 
-## <a id="database7"></a>Retrieve a **single column** from executed query
+### <a id="getcolumn"></a>Retrieve a **single column** from executed query
 ```php
 public void database::GetColumn ([ int $index ] )
 ```
@@ -303,7 +279,7 @@ This command uses the fetchColumn() method. If no index is provided it will retu
 
 [Back to Top](#topMethods)
 
-## <a id="database8"></a>Get the row count of the executed statement
+### <a id="getrowcount"></a>Get the row count of the executed statement
 ```php
 public void database::GetRowCount ([ NULL ] )
 ```
@@ -316,7 +292,7 @@ $rows = $myDatabase->GetRowCount();
 
 [Back to Top](#topMethods)
 
-## <a id="database10"></a>Get the column count of the executed statement
+### <a id="getcolumncount"></a>Get the column count of the executed statement
 ```php
 public void database::GetColumnCount ([ NULL ] )
 ```
@@ -329,7 +305,7 @@ $columns = $myDatabase->GetColumnCount();
 
 [Back to Top](#topMethods)
 
-## <a id="database9"></a>Get the ID of the last inserted row for the executed statement
+### <a id="lastid"></a>Get the ID of the last inserted row for the executed statement
 ```php
 public void database::GetInsertedID ([ NULL ] )
 ```
@@ -342,7 +318,7 @@ $lastID = $myDatabase->GetInsertedID();
 
 [Back to Top](#topMethods)
 
-## <a id="database11"></a>Get the prepared statement to use other PDO functions.
+### <a id="getstatement"></a>Get the prepared statement to use other PDO functions.
 ```php
 public void database::GetPreparedStatement ([ NULL ] )
 ```
@@ -357,3 +333,23 @@ $pStatement = $myDatabase->GetPreparedStatement();
 
 ---
 
+### <a id="error"></a>Error Management
+Curator Database suppresses PHP & PDO errors and instead throws custom errors of its own to your application. Curator Database will NOT display any errors or use die() to stop run time. This is intentional and prevents revealing potentially sensitive data in your queries or connection information. It is recommended you implement your own error handling processes. As such, using try{} and catch{} are recommended when performing Curator Database functions.
+
+If you decide not to manage Curator Database errors your application will stop operating silently (no messages).
+
+**PHP 7 Note**
+
+>All Curator Database methods will throw Error() objects. This is a new PHP 7 base class and is caught by using 'Throwable'.
+
+```php
+try
+{
+    //Curator Database Method
+}
+catch(Throwable $t)
+{
+    //Your error handling here.
+    echo $t->getMessage();
+}
+```
