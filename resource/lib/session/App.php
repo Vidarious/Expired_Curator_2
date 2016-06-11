@@ -1,6 +1,6 @@
 <?php
  /*
- * Curator Session is a class which manages user sessions.
+ * Curator Session is a class which manages user sessions and cookies.
  *
  * Written with PHP Version 7.0.6
  *
@@ -28,8 +28,17 @@ class App
         //Start the session.
         session_start();
 
-        //Secure the session.
-        self::SecureSession();
+        if(isset($_SESSION[SESSION_NAME . '_Status']) && $_SESSION[SESSION_NAME . '_Status'] === TRUE)
+        {
+            //Secure the session.
+            self::SecureSession();
+        }
+        else
+        {
+            //Start a new session.
+            self::NewSession();
+        }
+
     }
 
     //Singleton design.
@@ -85,7 +94,7 @@ class App
         if(!isset($_SESSION[SESSION_NAME]) || !self::ConfirmTimeOut() || !self::ConfirmUser() || !self::ConfirmIP())
         {
             //Secure check(s) failed. Create new session.
-            self::newSession();
+            self::NewSession();
 
             return();
         }
@@ -124,177 +133,192 @@ class App
         return();
     }
 
-    //Session timeout management.
+    //Verifies if the current session has timed out.
     protected function ConfirmTimeOut()
     {
-    if(isset($_SESSION['Curator_idleTime']))
-    {
-    $idleLength = time() - $_SESSION['Curator_idleTime'];
+        //Check if an existing session is in progress.
+        if(isset($_SESSION[SESSION_NAME . '_idleTime']))
+        {
+            $idleLength = time() - $_SESSION[SESSION_NAME . '_idleTime'];
 
-    if($idleLength < CONFIG\SESSION\TIMEOUT)
-    {
-    //***
-    $_SESSION['Curator_idleTime2'] = $_SESSION['Curator_idleTime']; //TESTING ONLY. DELETE LATER.
-    //***
-    $_SESSION['Curator_idleTime'] = time();
-    return TRUE;
-    }
-    }
-    $this->test[] = "Timeout failed .. Last idle time: " . date("i:s", time() - $_SESSION['Curator_idleTime']);
+            if($idleLength < SESSION_IDLE_TIME)
+            {
+                //User is within idle limit. Assigning new idle checkpoint.
+                $_SESSION[SESSION_NAME . '_idleTime'] = time();
 
-    return FALSE;
+                return(TRUE);
+            }
+        }
+
+        //Session session has timed out or this is a new session.
+        return (FALSE);
     }
 
     //Confirms if users agent is same as the sessions user.
+    //The user agent is encoded for added protection.
     protected function ConfirmUser()
     {
-    if(CONFIG\SESSION\ENFORCE_USERAGENT === TRUE)
-    {
-    $userAgent = self::encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
+        if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT'])))
+        {
+            $userAgent = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
 
-    if(!isset($_SESSION['Curator_userAgent']) || ($_SESSION['Curator_userAgent'] != $userAgent))
-    {
-    $this->test[] = "User agent check failed ...";
-    return FALSE;
-    }
-    }
+            if(!isset($_SESSION[SESSION_NAME . '_userAgent']) || ($_SESSION[SESSION_NAME . '_userAgent'] != $userAgent))
+            {
+                //Fail if there is no recorded user agent or if the user agent recorded does not match the current.
+                return(FALSE);
+            }
+        }
 
-    return TRUE;
+        //Pass if recorded user agent is good or if there is no HTTP_USER_AGENT (ensures application continues).
+        return(TRUE);
     }
 
     //Confirms if users IP is same as the sessions user.
     protected function ConfirmIP()
     {
-    //Check if IP Enforcement is enabled.
-    if(CONFIG\SESSION\ENFORCE_IP === TRUE)
-    {
-    $userKey = self::encode($this->userIP);
+        //Check if IP Enforcement is enabled. The IP is encrypted and hidden in a non-obvious variable.
+        if(IP_VALIDATION === TRUE)
+        {
+            $userKey = self::Encode($this->userIP);
 
-    if(!isset($_SESSION['Curator_userKey']) || ($_SESSION['Curator_userKey'] != $userKey))
-    {
-    $this->test[] = "User IP check failed ...";
-    return FALSE;
-    }
-    }
+            if(!isset($_SESSION[SESSION_NAME . '_userKey']) || ($_SESSION[SESSION_NAME . '_userKey'] != $userKey))
+            {
+                return(FALSE);
+            }
+        }
 
-    return TRUE;
+        //Pass if user IP is same as the recorded session IP or if the user does not have a valid IP. Keeps the applcation running.
+        return(TRUE);
     }
 
     //Encode the passed value with the Curator's salt.
-    public function encode($value)
+    public function Encode($value)
     {
-    return(hash(CONFIG\SESSION\ENCRYPTION, $value . CONFIG\SESSION\IDENTIFIER));
+        return(hash(SESSION_HASH_FUNCTION, $value . SESSION_SITE_SALT));
     }
 
-    //Initialize new session data.
-    protected function newSession()
+    //Starts a new session for the user.
+    protected function NewSession()
     {
-    //Destroy cookie, session and setup new cookie & session.
-    $this->Cookie->destroyCookies();
-    $this->Cookie->setupCookies();
+        //Destroy cookie, session and setup new cookie & session.
+        self::DestroyCookie();
+        self::InitializeCookie();
+        self::DestroySession();
+        self::InitializeSession();
 
-    self::destroySession();
-    self::setupSession();
+        session_start();
 
-    session_start();
+        if(IP_VALIDATION === TRUE)
+        {
+            $_SESSION[SESSION_NAME . '_userKey'] = self::Encode($this->userIP);
+        }
 
-    if(CONFIG\SESSION\ENFORCE_IP === TRUE)
-    {
-    $_SESSION['Curator_userKey'] = self::encode($this->userIP);
+        if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT']))
+        {
+            $_SESSION[SESSION_NAME . '_userAgent'] = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
+        }
+
+        $_SESSION[SESSION_NAME . '_startTime'] = $_SESSION[SESSION_NAME . '_idleTime'] = $_SESSION[SESSION_NAME . '_regenTime'] = time();
+        $_SESSION[SESSION_NAME . '_Status']    = TRUE;
     }
 
-    if(CONFIG\SESSION\ENFORCE_USERAGENT === TRUE)
+    //Session ID is regenerated in two ways.
+    //#1: The session ID is regenerated after a set amount of time defined by the config.
+    //#2: The session ID is regenerated on a random chance.
+    protected function TryRegenerate()
     {
-    $_SESSION['Curator_userAgent'] = self::encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
+        if(!self::RegenerateTime())
+        {
+            self::RegeneratePercent();
+        }
     }
 
-    $_SESSION['Curator_startTime'] = $_SESSION['Curator_idleTime'] = $_SESSION['Curator_regenTime'] = time();
-    $_SESSION['Curator_Status']    = TRUE;
-    $_SESSION['Curator_Lang']      = CONFIG\LANG\CURATOR_USER_DEFAULT;
+    //Regenerate Session ID based on config set time length.
+    protected function RegenerateTime()
+    {
+        if(SESSION_REGEN_TIME !== FALSE)
+        {
+            //Last time the session ID was regenerated.
+            $regenLength = time() - $_SESSION[SESSION_NAME . '_regenTime'];
 
-    $this->test[] = "New session started ...";
-    $_SESSION['MESSAGE'] = $this->test;
-    }
+            //Check if the last regenerated time has exceeded the config setting.
+            if($regenLength > SESSION_REGEN_TIME)
+            {
+                //Session ID needs to be regenerated.
+                session_regenerate_id(TRUE);
+                $_SESSION[SESSION_NAME . '_regenTime'] = time();
 
-    //Two trys to regenerate Session ID for added security. Both configurable by admin
-    protected function tryRegenerate()
-    {
-    if(!self::regenerateTime())
-    {
-    self::regeneratePercent();
-    }
-    }
+                return(TRUE);
+            }
+        }
 
-    //Regenerate Session ID based on admin set time length. Regenerates every XXX seconds.
-    protected function regenerateTime()
-    {
-    if(CONFIG\SESSION\REGENERATE\TIME\ENFORCE === TRUE)
-    {
-    //Last time the session ID was regenerated.
-    $regenLength = time() - $_SESSION['Curator_regenTime'];
-
-    //Check if the last regenerated time has exceeded the admin setting.
-    if($regenLength > CONFIG\SESSION\REGENERATE\TIME)
-    {
-    session_regenerate_id(TRUE);
-    $_SESSION['Curator_regenTime'] = time();
-    $_SESSION['MESSAGE'][0] = "\nSession time exceeded .. Generated new ID ...";
-    return TRUE;
-    }
-    }
+        //Regenerate session ID option disabled or session ID does not need to be regenerated.
+        return(FALSE);
     }
 
     //Regenerate Session ID every X% of the time which is admin set.
-    protected function regeneratePercent()
+    protected function RegeneratePercent()
     {
-    if(CONFIG\SESSION\REGENERATE\PERCENT\ENFORCE === TRUE)
-    {
-    //Generate based on % chance set by admin (Value: 1 - 100) out of 100.
-    if(($test = mt_rand(0,100)) <= CONFIG\SESSION\REGENERATE\PERCENT)
-    {
-    session_regenerate_id(TRUE);
-    $_SESSION['MESSAGE'][0] = "5% hit! Regenerated new ID ...";
-    }
-    //****
-    $_SESSION['RandomTEST'] = $test; //TESTING ONLY
-    //****
-    }
-    }
-
-    //Return a Session class variable.
-    public function __get($property = NULL)
-    {
-    if(property_exists($this, $property))
-    {
-    return $this->$property;
-    }
+        if(SESSION_REGEN_CHANCE !== FALSE)
+        {
+            //Generate based on % chance set by config (Value: 1 - 100) out of 100.
+            if((mt_rand(0,100)) <= SESSION_REGEN_CHANCE)
+            {
+                //Buy a lotto ticket! Session will be regenerated.
+                session_regenerate_id(TRUE);
+            }
+        }
     }
 
     //Returns the requested session value.
-    public static function getValue($variable = NULL)
+    public static function GetValue($variable = NULL)
     {
-    if(isset($_SESSION[$variable]))
-    {
-    return $_SESSION[$variable];
-    }
+        if(isset($_SESSION[$variable]))
+        {
+            return()$_SESSION[$variable]);
+        }
 
-    return NULL;
+        return(NULL);
     }
 
     //Sets the requested session value.
-    public static function setValue($variable = NULL, $value = NULL)
+    public static function SetValue($variable = NULL, $value = NULL)
     {
-    if(isset($variable))
-    {
-    if(empty($value))
-    {
-    unset($_SESSION[$variable]);
+        if(isset($variable))
+        {
+            if(empty($value))
+            {
+                //Delete the variable.
+                unset($_SESSION[$variable]);
+            }
+            else
+            {
+                $_SESSION[$variable] = $value;
+            }
+        }
     }
-    else
+
+    //Gets the cookie value.
+    public static function GetCookie($name = NULL)
     {
-    return($_SESSION[$variable] = $value);
+        if(isset($name) && isset($_COOKIE[$name]))
+        {
+            return($_COOKIE[$name]);
+        }
+
+        return(NULL);
     }
-    }
+
+    //Deletes a cookie value.
+    public static function DeleteCookie($name = NULL)
+    {
+        if(isset($name) && isset($_COOKIE[$name]))
+        {
+            unset($_COOKIE[$name]);
+            return(setcookie($name, '', time() - 3600);
+        }
+
+        return(NULL);
     }
 
     //Four way session destroy.
@@ -308,7 +332,7 @@ class App
     }
 
     //Removes all site cookies.
-    public function DestroyCookies()
+    public function DestroyCookie()
     {
         //Loop through each cookie and remove.
         foreach ($_COOKIE as $key => $value)

@@ -19,6 +19,25 @@ define('Curator\Session\SESSION_NAME', 'MYSITESESSION');
 //If IP cannot obtained user can still be session validated.
 define('Curator\Session\IP_VALIDATION', TRUE);
 
+//Session idle timeout value. Default is 1800 seconds (30 minutes.)
+//This is the maximum of idle time (seconds) that can elapse between user actions.
+define('Curator\Session\SESSION_IDLE_TIME', 1800);
+
+//Setting for user agent (browser) verification. Suggested setting is TRUE.
+//User agent checking is not always accurate due to many user factors.
+define('Curator\Session\SESSION_USERAGENT_CHECK', TRUE);
+
+//Your site salt value for encrypting various pieces of user data.
+define('Curator\Session\SESSION_SITE_SALT', 'JKfjknfjkfn389f8fhf38FHh830Fq3');
+
+//Sets the amount of time that can elapse until the session ID is regenerated for added security.
+//Suggested value is 300 seconds (5 minutes). Set to FALSE to disable this option.
+define('Curator\Session\SESSION_REGEN_TIME', 300);
+
+//Sets the percentage chance the session ID is regenerated (out of 100%) for added security.
+//Suggested value is 5  (5%). Set to FALSE to disable this option.
+define('Curator\Session\SESSION_REGEN_CHANCE', 5);
+
 //Session ID management. Always use '1'.
 define('Curator\Session\SESSION_USE_COOKIES', 1);
 
