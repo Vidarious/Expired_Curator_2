@@ -1,6 +1,3 @@
-<?php
-   require_once('../resource/lib/session/session.php');
-?>
 <!DOCTYPE html>
 <html lang="en">
    <head>
@@ -15,9 +12,15 @@
    </head>
    <body>
       <div class="container-fluid">
-          <?php
+<?php
 
-           ?>
+//Include Curator Session.
+require_once('../resource/lib/session/App.php');
+
+$mySession = Curator\Session\App::GetSession();
+
+var_dump($mySession->GetValue('MYSITESESSION'));
+?>
       </div>
       <!-- JavaScript Inserts -->
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>

@@ -11,6 +11,8 @@
  */
 namespace Curator\Session;
 
+require_once('config.php');
+
 class App
 {
     //Class Properties (Variable)
@@ -28,7 +30,7 @@ class App
         //Start the session.
         session_start();
 
-        if(isset($_SESSION[SESSION_NAME . '_Status']) && $_SESSION[SESSION_NAME . '_Status'] === TRUE)
+        if(isset($_SESSION[SESSION_NAME]['status']) && $_SESSION[SESSION_NAME]['status'] === TRUE)
         {
             //Secure the session.
             self::SecureSession();
@@ -38,7 +40,6 @@ class App
             //Start a new session.
             self::NewSession();
         }
-
     }
 
     //Singleton design.
@@ -55,7 +56,7 @@ class App
             $sessionInstance = new static();
         }
 
-        return $sessionInstance;
+        return($sessionInstance);
     }
 
     //Initialize the cookie details.
@@ -91,16 +92,16 @@ class App
         }
 
         //Four confirmations to see if the session is secure.
-        if(!isset($_SESSION[SESSION_NAME]) || !self::ConfirmTimeOut() || !self::ConfirmUser() || !self::ConfirmIP())
+        if(!isset($_SESSION[SESSION_NAME]['status']) || !self::ConfirmTimeOut() || !self::ConfirmUserAgent() || !self::ConfirmIP())
         {
             //Secure check(s) failed. Create new session.
             self::NewSession();
 
-            return();
+            return;
         }
 
         //Session is secure. See if the Session ID needs to be regenerated.
-        self::tryRegenerate();
+        self::TryRegenerate();
     }
 
     //Validate the IP passed is a valid IPV4 or IPV6 IP address.
@@ -120,31 +121,30 @@ class App
                 {
                     $userIP = trim($userIP);
 
-                    if (filter_var($userIP, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) !== FALSE){
-                        $this->userIP = $userIP;
-
-                        return();
+                    if (filter_var($userIP, FILTER_VALIDATE_IP) !== FALSE)
+                    {
+                        return($this->userIP = $userIP);
                     }
                 }
             }
         }
 
         //User IP could not be obtained through header information. 'NULL' will be used.
-        return();
+        return(FALSE);
     }
 
     //Verifies if the current session has timed out.
     protected function ConfirmTimeOut()
     {
         //Check if an existing session is in progress.
-        if(isset($_SESSION[SESSION_NAME . '_idleTime']))
+        if(isset($_SESSION[SESSION_NAME]['idleTime']))
         {
-            $idleLength = time() - $_SESSION[SESSION_NAME . '_idleTime'];
+            $idleLength = time() - $_SESSION[SESSION_NAME]['idleTime'];
 
             if($idleLength < SESSION_IDLE_TIME)
             {
                 //User is within idle limit. Assigning new idle checkpoint.
-                $_SESSION[SESSION_NAME . '_idleTime'] = time();
+                $_SESSION[SESSION_NAME]['idleTime'] = time();
 
                 return(TRUE);
             }
@@ -156,13 +156,14 @@ class App
 
     //Confirms if users agent is same as the sessions user.
     //The user agent is encoded for added protection.
-    protected function ConfirmUser()
+    protected function ConfirmUserAgent()
     {
-        if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT'])))
+
+        if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT']))
         {
             $userAgent = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
 
-            if(!isset($_SESSION[SESSION_NAME . '_userAgent']) || ($_SESSION[SESSION_NAME . '_userAgent'] != $userAgent))
+            if(!isset($_SESSION[SESSION_NAME]['userAgent']) || ($_SESSION[SESSION_NAME]['userAgent'] != $userAgent))
             {
                 //Fail if there is no recorded user agent or if the user agent recorded does not match the current.
                 return(FALSE);
@@ -181,7 +182,7 @@ class App
         {
             $userKey = self::Encode($this->userIP);
 
-            if(!isset($_SESSION[SESSION_NAME . '_userKey']) || ($_SESSION[SESSION_NAME . '_userKey'] != $userKey))
+            if(!isset($_SESSION[SESSION_NAME]['userKey']) || ($_SESSION[SESSION_NAME]['userKey'] != $userKey))
             {
                 return(FALSE);
             }
@@ -210,16 +211,16 @@ class App
 
         if(IP_VALIDATION === TRUE)
         {
-            $_SESSION[SESSION_NAME . '_userKey'] = self::Encode($this->userIP);
+            $_SESSION[SESSION_NAME]['userKey'] = self::Encode($this->userIP);
         }
 
         if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT']))
         {
-            $_SESSION[SESSION_NAME . '_userAgent'] = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
+            $_SESSION[SESSION_NAME]['userAgent'] = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
         }
 
-        $_SESSION[SESSION_NAME . '_startTime'] = $_SESSION[SESSION_NAME . '_idleTime'] = $_SESSION[SESSION_NAME . '_regenTime'] = time();
-        $_SESSION[SESSION_NAME . '_Status']    = TRUE;
+        $_SESSION[SESSION_NAME]['startTime'] = $_SESSION[SESSION_NAME]['idleTime'] = $_SESSION[SESSION_NAME]['regenTime'] = time();
+        $_SESSION[SESSION_NAME]['status']    = TRUE;
     }
 
     //Session ID is regenerated in two ways.
@@ -239,14 +240,14 @@ class App
         if(SESSION_REGEN_TIME !== FALSE)
         {
             //Last time the session ID was regenerated.
-            $regenLength = time() - $_SESSION[SESSION_NAME . '_regenTime'];
+            $regenLength = time() - $_SESSION[SESSION_NAME]['regenTime'];
 
             //Check if the last regenerated time has exceeded the config setting.
             if($regenLength > SESSION_REGEN_TIME)
             {
                 //Session ID needs to be regenerated.
                 session_regenerate_id(TRUE);
-                $_SESSION[SESSION_NAME . '_regenTime'] = time();
+                $_SESSION[SESSION_NAME]['regenTime'] = time();
 
                 return(TRUE);
             }
@@ -275,7 +276,7 @@ class App
     {
         if(isset($_SESSION[$variable]))
         {
-            return()$_SESSION[$variable]);
+            return($_SESSION[$variable]);
         }
 
         return(NULL);
@@ -315,7 +316,7 @@ class App
         if(isset($name) && isset($_COOKIE[$name]))
         {
             unset($_COOKIE[$name]);
-            return(setcookie($name, '', time() - 3600);
+            return(setcookie($name, '', time() - 3600));
         }
 
         return(NULL);
