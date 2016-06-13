@@ -20,6 +20,10 @@ require_once('../resource/lib/session/App.php');
 $mySession = Curator\Session\App::GetSession();
 
 var_dump($mySession->GetValue('MYSITESESSION'));
+
+$mySession->SetCookie('test', '1234');
+
+var_dump($_COOKIE);
 ?>
       </div>
       <!-- JavaScript Inserts -->

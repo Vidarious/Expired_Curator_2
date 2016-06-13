@@ -21,7 +21,7 @@ define('Curator\Session\IP_VALIDATION', TRUE);
 
 //Session idle timeout value. Default is 1800 seconds (30 minutes.)
 //This is the maximum of idle time (seconds) that can elapse between user actions.
-define('Curator\Session\SESSION_IDLE_TIME', 15);
+define('Curator\Session\SESSION_IDLE_TIME', 1800);
 
 //Setting for user agent (browser) verification. Suggested setting is TRUE.
 //User agent checking is not always accurate due to many user factors.

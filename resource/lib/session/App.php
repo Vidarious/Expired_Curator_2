@@ -104,8 +104,8 @@ class App
         self::TryRegenerate();
     }
 
-    //Validate the IP passed is a valid IPV4 or IPV6 IP address.
-    public function ValidateIP()
+    //Validate the user IP from $_SERVER data is a valid IPV4 or IPV6 IP address.
+    protected function ValidateIP()
     {
         //Create array of possible IP locations.
         $ipLocations = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
@@ -193,17 +193,14 @@ class App
     }
 
     //Encode the passed value with the Curator's salt.
-    public function Encode($value)
+    public function Encode($value = NULL)
     {
         return(hash(SESSION_HASH_FUNCTION, $value . SESSION_SITE_SALT));
     }
 
     //Starts a new session for the user.
-    protected function NewSession()
+    public function NewSession()
     {
-        //Destroy cookie, session and setup new cookie & session.
-        self::DestroyCookie();
-        self::InitializeCookie();
         self::DestroySession();
         self::InitializeSession();
 
@@ -310,16 +307,31 @@ class App
         return(NULL);
     }
 
+    //Sets a cookie value.
+    public static function SetCookie($name = NULL, $value = NULL, $expire = COOKIE_LIFETIME, $path = COOKIE_PATH, $domain = COOKIE_DOMAIN, $secure = COOKIE_SECURE, $httpOnly = COOKIE_HTTPONLY)
+    {
+        if(isset($name) && isset($value))
+        {
+            setcookie($name, $value, $expire, $path, $domain, $secure, $httpOnly);
+
+            return(TRUE);
+        }
+
+        return(FALSE);
+    }
+
     //Deletes a cookie value.
     public static function DeleteCookie($name = NULL)
     {
         if(isset($name) && isset($_COOKIE[$name]))
         {
             unset($_COOKIE[$name]);
-            return(setcookie($name, '', time() - 3600));
+            setcookie($name, '', time() - 3600);
+
+            return(TRUE);
         }
 
-        return(NULL);
+        return(FALSE);
     }
 
     //Four way session destroy.
@@ -340,6 +352,7 @@ class App
         {
             //Deletes cookie.
             unset($_COOKIE[$key]);
+
             //Expires cookie.
             setcookie($key, '', time() - 3600);
         }
