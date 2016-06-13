@@ -48,11 +48,12 @@ $mySessionObject = Curator\Session\App::GetSession();
 public void App::NewSession ([])
 ```
 
-NewSession destroys the previous session and creates a new one. This is not necessary to use unless you want to force the creation of a new session (creating the Curator Session object creates a session as needed).
+NewSession destroys the previous session and creates a new one. This is not necessary to use unless you want to force the creation of a new session (creating the Curator Session object creates a session by default).
 
 ```php
-$encryptedData = $mySessionObject->Encode('Private Data');
+$mySessionObject->NewSession();
 ```
+
 ##### <a id="encode"></a>Encode Data
 
 ```php
@@ -60,6 +61,9 @@ public string App::Encode ([ string $value = NULL ])
 ```
 
 The Encode method allows you to encrypt data. This is a one way encryption using the site salt you set in the configuration. This data cannot be decrypted. This means that data you send to Encode will be lost but can be used for comparison later.
+
+**TIP**
+>While this method may not be the absolute best for encrypting user passwords, its a start. NEVER store a users password in plain text. Encrypt it then store it. A password should never need to be decrypted. Just compare a users password attempt with the encrypted password - if its a match, grant access.
 
 ```php
 $encryptedData = $mySessionObject->Encode('Private Data');
@@ -179,112 +183,112 @@ $mySessionObject::DestroyCookie();
 #### Configuration
 Curator Session has a large number of configuration options. Not all need to be customized but the option is available to you regardless.
 
-#####SESSION_NAME
-Desc
+#####SESSION_NAME [STRING]
+Assign a name to your sessions. This name will be the first part of each application session variable such as "MYSITESESSION_status".
 
 >Default Value: 'MYSITESESSION'
 
-#####IP_VALIDATION
-Desc
+#####IP_VALIDATION [BOOL]
+TRUE or FALSE indicates if IP validation is enabled or disabled. This will check if the users IP stays consistant from page to page. As capturing the users IP can be difficult with some users, when an IP cannot be obtained through the server variables Curator Session will allow the user to continue without creating a new session. While this negates this feature completely it allows your sessions to continue running smoothly for all users. This may fool a number of people trying to hijack session ID's but it wont do much against more sophisticated hackers.
 
 >Default Value: TRUE
 
-#####SESSION_IDLE_TIME
-Desc
+#####SESSION_IDLE_TIME [INT]
+Set the amount of time (in seconds) you will allow your users to idle until their session is destroyed and created again. For example if set to 1800 (5 minutes) and the user is idle for 6 minutes, their session will be recreated on their next page load.
 
 >Default Value: 1800
 
-#####SESSION_USERAGENT_CHECK
-Desc
+#####SESSION_USERAGENT_CHECK [BOOL]
+TRUE or FALSE indicates if the user browser is verified on each page load. This is an extra layer of security to help reduce session hijacking.
 
 >Default Value: TRUE
 
-#####SESSION_SITE_SALT
-Desc
+#####SESSION_SITE_SALT [STRING]
+Create a unique site session salt. This is used in the encode, IP and browser processes.
 
 >Default Value: 'JKfjknfjkfn389f8fhf38FHh830Fq3'
 
-#####SESSION_REGEN_TIME
-Desc
+#####SESSION_REGEN_TIME [INT]
+Set the maximum of time that can pass for a user until the session ID is regenerated. This value is in seconds. Regenerating the session ID occasionally is another method of reducing session hijacking.
 
 >Default Value: 300
 
-#####SESSION_REGEN_CHANCE
-Desc
+#####SESSION_REGEN_CHANCE [INT]
+Enter a value from 0-100 which represents the percent chance the session will be regenerated on page load. This adds a unpredictable chance that the session ID will be regenerated on every page load.
 
 >Default Value: 5
 
-#####SESSION_USE_COOKIES
-Desc
+#####SESSION_USE_COOKIES [INT]
+Specifies if the server will use cookies to store the session ID on the clide side. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-cookies)
 
 >Default Value: 1
 
-#####SESSION_USE_ONLY_COOKIES
-Desc
+#####SESSION_USE_ONLY_COOKIES [INT]
+Specifies if the server will **only** use cookies to store the session ID on the clide side. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-only-cookies)
 
 >Default Value: 1
 
-#####SESSION_COOKIE_LIFETIME
-Desc
+#####SESSION_COOKIE_LIFETIME [INT]
+Specifies the lifetime of the cookies in seconds. '0' means until the browser is closed. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime)
 
 >Default Value: 0
 
-#####SESSION_COOKIE_HTTPONLY
-Desc
+#####SESSION_COOKIE_HTTPONLY [INT]
+Specifies if the cookie is accessible only through the HTTP protocol. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-httponly)
 
 >Default Value: 1
 
-#####SESSION_USE_TRANS_SID
-Desc
+#####SESSION_USE_TRANS_SID [INT]
+Specifies if transparent Session ID is enabled or not. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-trans-sid)
 
 >Default Value: 0
 
-#####SESSION_USE_STRICT_MODE
-Desc
+#####SESSION_USE_STRICT_MODE [INT]
+Specifies if the server will use strict session ID mode. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-strict-mode)
 
 >Default Value: 1
 
-#####SESSION_ENTROPY_FILE
-Desc
-
->Default Value: 
-
-#####SESSION_ENTROPY_LENGTH
-Desc
+#####SESSION_ENTROPY_FILE [STRING]
+Specifies an external source to be used in the session ID creation. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.entropy-file)
 
 >Default Value: '/dev/urandom'
 
-#####SESSION_HASH_BITS_PER_CHARACTER
-Desc
+#####SESSION_ENTROPY_LENGTH [STRING]
+Specifies the number of bytes which will be read from the specified entropy file. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.entropy-length)
 
->Default Value: 32
+>Default Value: '32'
 
-#####SESSION_HASH_FUNCTION
-Desc
+#####SESSION_HASH_BITS_PER_CHARACTER [INT]
+Specifies the number of bits stored in each character when converting the binary hash data to something readable. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.hash-bits-per-character)
+
+>Default Value: 5
+
+#####SESSION_HASH_FUNCTION [STRING]
+Specifies the hash algorithm to be used to generate the session ID's. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.hash-function)
 
 >Default Value: 'sha256'
 
-#####COOKIE_LIFETIME
-Desc
+#####COOKIE_LIFETIME [INT]
+Specifies the lifetime of the cookie in seconds which is sent to the browser. '0' means until the browser is closed.[More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime)
 
 >Default Value: 0
 
-#####COOKIE_PATH
-Desc
+#####COOKIE_PATH [STRING]
+Specifies the path to set in the session cookie. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-path)
 
 >Default Value: '/'
 
-#####COOKIE_DOMAIN
-Desc
+#####COOKIE_DOMAIN [STRING]
+Specifies the domain to set in the session cookie. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-domain)
 
 >Default Value: ''
 
-#####COOKIE_SECURE
-Desc
+#####COOKIE_SECURE [BOOL]
+Specifies whether cookies should be sent over secure connections or not. Enable this if your site uses HTTPS. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-secure)
 
 >Default Value: FALSE
 
-#####COOKIE_HTTPONLY
-Desc
+#####COOKIE_HTTPONLY [BOOL]
+Specifies if the cookie is acessible only through the HTTP protocol. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-httponly)
 
 >Default Value: TRUE
