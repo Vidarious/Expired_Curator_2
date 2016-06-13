@@ -32,6 +32,7 @@ $mySessionObject = Curator\Session\App::GetSession();
 >This class is namespaced to Curator\Session for your convience. You will only need to worry about the namespace for the inital object creation.
 
 ####<a id="topMethods"></a>Methods
+- [Start A New Session](#startsession)
 - [Encode Data](#encode)
 - [Get Session Value](#getvalue)
 - [Set Session Value](#setvalue)
@@ -41,6 +42,17 @@ $mySessionObject = Curator\Session\App::GetSession();
 - [Destroy Session](#destroysession)
 - [Destroy Cookies](#destroycookies)
 
+##### <a id="startsession"></a>Start A New Session
+
+```php
+public void App::NewSession ([])
+```
+
+NewSession destroys the previous session and creates a new one. This is not necessary to use unless you want to force the creation of a new session (creating the Curator Session object creates a session as needed).
+
+```php
+$encryptedData = $mySessionObject->Encode('Private Data');
+```
 ##### <a id="encode"></a>Encode Data
 
 ```php
@@ -50,7 +62,7 @@ public string App::Encode ([ string $value = NULL ])
 The Encode method allows you to encrypt data. This is a one way encryption using the site salt you set in the configuration. This data cannot be decrypted. This means that data you send to Encode will be lost but can be used for comparison later.
 
 ```php
-$mySessionObject->Encode('Private Data');
+$encryptedData = $mySessionObject->Encode('Private Data');
 ```
 
 [Back to Top](#topMethods)
@@ -64,7 +76,7 @@ public static string App::GetValue ([ string $variable = NULL ])
 GetValue returns the value of the passed session variable name. This is the same as accessing the variable directly using $_SESSION['Variable']. However, the purpose of this method is to provide you with a way to create a wrapper and customize this action.
 
 ```php
-$mySessionObject::GetValue('myVariable');
+$myData = $mySessionObject::GetValue('myVariable');
 ```
 
 [Back to Top](#topMethods)
@@ -92,7 +104,7 @@ public static string App::GetCookie ([ string $name = NULL ])
 GetCookie returns the data assigned to the passed cookie name.
 
 ```php
-$mySessionObject::GetCookie('myCookie');
+$cookieData = $mySessionObject::GetCookie('myCookie');
 ```
 
 [Back to Top](#topMethods)
@@ -112,7 +124,7 @@ public static bool App::SetCookie
   )
 ```
 
-SetCookie allows you to create a cookie. Only the first type parameters are required (name and value). The other variables will be taken from the configuration data. However you may override these as you see fit.
+SetCookie allows you to create a cookie. Only the first 2 parameters are required (name and value). The other variables will be taken from the configuration data. However, you may override these as you see fit.
 
 ```php
 $mySessionObject::SetCookie('myCookie', 'Some Data Here');
@@ -126,7 +138,7 @@ $mySessionObject::SetCookie('myCookie', 'Some Data Here');
 public static bool App::DeleteCookie ([ string $name = NULL ])
 ```
 
-DeleteCookie allows you to delete cookies.
+DeleteCookie allows you to delete cookies. Pass the name of cookie to delete. You will receive back TRUE if deletion was OK and FALSE if not.
 
 ```php
 $mySessionObject::DeleteCookie('myCookie');
