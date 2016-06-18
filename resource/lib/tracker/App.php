@@ -1,86 +1,82 @@
 <?php
  /*
- * Class for page tracking. Singleton design. There can only be one instance of this class.
+ * Curator Tracker is a class which tracks users page navigation.
  *
- * PHP Version 7.0.2
+ * Written with PHP Version 7.0.6
  *
- * @package    Curator
+ * @package    Curator Tracker
  * @author     James Druhan <jdruhan.home@gmail.com>
  * @copyright  2016 James Druhan
  * @version    1.0
  */
-    namespace Curator\Classes;
+namespace Curator\Tracker;
 
-    use \Curator\Config as CONFIG;
+//Path to your site's home page or default page.
+define('Curator\Tracker\HOME', '\index.php');
 
-    //Deny direct access to file.
-    if(!defined('Curator\Config\APPLICATION'))
+//Name of your site. This is appended to Curator Trackers session variables.
+define('Curator\Tracker\SITENAME', 'CURATOR');
+
+class App
+{
+    //Class Properties
+    public $pageCurrent  = HOME;
+    public $pagePrevious = HOME;
+
+    //Object initalization. Singleton design.
+    protected function __construct()
     {
-        header("Location: " . "http://" . filter_var($_SERVER['HTTP_HOST'], FILTER_SANITIZE_URL));
-        die();
+        self::GetCurrentPage();
+        self::GetPastPage();
+        self::UpdateSessionPages();
     }
 
-    class Tracker
+    //Singleton design.
+    private function __clone() {}
+    private function __wakeup() {}
+
+    //Returns the singleton instance of the Session object.
+    public static function GetTracker()
     {
-        //Class Objects
-        private $Session     = NULL;
+        static $trackerInstance = NULL;
 
-        //Class Variables
-        public $pageCurrent  = NULL;
-        public $pagePrevious = CONFIG\PATH\HOMEPAGE;
-
-        //Object initalization. Singleton design.
-        protected function __construct()
+        if($trackerInstance === NULL)
         {
-            //Initialize session object.
-            $this->Session  = Session::getSession();
-
-            self::getCurrentPage();
-            self::getPastPage();
-            self::updateSessionPages();
+        $trackerInstance = new static();
         }
 
-        //Returns the singleton instance of the tracker class. Singleton design.
-        public static function getTracker()
-        {
-            static $trackerInstance = NULL;
+        return($trackerInstance);
+    }
 
-            if($trackerInstance === NULL)
-            {
-                $trackerInstance = new static();
-            }
-
-            return $trackerInstance;
-        }
-
-        //Singleton design.
-        private function __clone() {}
-
-        //Singleton design.
-        private function __wakeup() {}
-
-        //Get current page URI.
-        private function getCurrentPage()
+    //Get current page URI.
+    private function GetCurrentPage()
+    {
+        if(!empty($_SERVER['REQUEST_URI']))
         {
             $this->pageCurrent = filter_var($_SERVER['REQUEST_URI'], FILTER_SANITIZE_URL);
         }
+    }
 
-        //Get past page URI.
-        private function getPastPage()
+    //Get past page URI.
+    private function GetPastPage()
+    {
+        if(!empty($_SESSION[SITENAME . '_PageCurrent']))
         {
-            $pastCurrentPage = filter_var($this->Session->getValue('Curator_PageCurrent'), FILTER_SANITIZE_URL);
-
-            if($pastCurrentPage !== NULL)
-            {
-                $this->pagePrevious = $pastCurrentPage;
-            }
+            $pastCurrentPage = filter_var($_SESSION[SITENAME . '_PageCurrent'], FILTER_SANITIZE_URL);
         }
 
-        //Update the Current and Past page session values.
-        private function updateSessionPages()
+        //Set previous page if it was found in session.
+        if(!empty($pastCurrentPage))
         {
-            $this->Session->setValue('Curator_PageCurrent', $this->pageCurrent);
-            $this->Session->setValue('Curator_PagePrevious', $this->pagePrevious);
+            $this->pagePrevious = $pastCurrentPage;
         }
     }
+
+    //Update the Current and Past page session values.
+    private function UpdateSessionPages()
+    {
+        $_SESSION[SITENAME . '_PageCurrent']  = $this->pageCurrent;
+        $_SESSION[SITENAME . '_PagePrevious'] = $this->pagePrevious;
+    }
+}
 ?>

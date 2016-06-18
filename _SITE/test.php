@@ -15,15 +15,10 @@
 <?php
 
 //Include Curator Session.
-require_once('../resource/lib/session/App.php');
-
-$mySession = Curator\Session\App::GetSession();
-
-var_dump($mySession->GetValue('MYSITESESSION'));
-
-$mySession->SetCookie('test', '1234');
-
-var_dump($_COOKIE);
+require_once('../resource/lib/tracker/App.php');
+session_start();
+$myTracker = Curator\Tracker\App::GetTracker();
+var_dump($_SESSION);
 ?>
       </div>
       <!-- JavaScript Inserts -->

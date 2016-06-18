@@ -1,153 +1,294 @@
-# <a id="topguide"></a>Curator How To Guide
+# Curator Session
 
-####Classes
-- [Database](#database)
-  - [Create database object](#database1)
-  - [Prepare a SQL statement](#database2)
-  - [Bind values to a prepared statement](#database3)
-  - [Execute a prepared statement](#database4)
-  - [Retrieve a single row result from executed query](#database5)
-  - [Retrieve a many row result from executed query](#database6)
-  - [Retrieve a single column result from executed query](#database7)
-  - [Get the row count of the executed statement](#database8)
-  - [Get the ID of the last inserted row for the executed statement](#database9)
-- [Lanugage](#language)
-  - [Create a language object](#language1)
-  - [Load class language file](#language2)
-- [Session](#session)
-  - [Get user IP address](#session1)
-- [Log](#log)
+This class manages your applications session and cookie needs. Curator Session ensures your sessions and cookies are secure and created with the appropriate configuration that match your site requirements. Feature rich and customizable, Curator Session allows you to concentrate on your application with confidence that your sessions and cookies are ready when you need them.
 
-* * *
+###### Features
++ Easy Session & Cookie Configuration
++ User IP Validation
++ User Browser Validation
++ Session Timeout
++ Session ID Regeneration
++ Quick One Way Encryption
++ Expandable Get/Set Session & Cookie Variables
++ Secure Session & Cookie Destory
 
-## <a id="database"></a>Database
-This class is in the **\Curator\Classes** namespace.
+---
 
-#####Create database object<a id="database1"></a>
-```php
-$CURATOR_DB = CLASSES\Database::getConnection();
-```
+### How To Use
 
-[Back to Top](#topguide)
-
-##### <a id="database2"></a>Prepare a SQL statement
-```php
-$statement = "INSERT INTO TABLE (name, value) VALUES (:name, :value)";
-$CURATOR_DB->prepareStatement($statement);
-```
-
-[Back to Top](#topguide)
-
-##### <a id="database3"></a>Bind values to a prepared statement
-```php
-$parameter = "name";
-$value = "John";
-
-$CURATOR_DB->bindValue($parameter, $value, \PDO::PARAM_INT);
-```
-OR
-```php
-$CURATOR_DB->bindValue("name", "John", \PDO::PARAM_INT);
-```
-
-**NOTE**: If $parameterType is not set the method will first identify the variable passed and properly associate the type:
-- PARAM_INT
-- PARAM_BOOL
-- PARAM_NULL
-- PARAM_STR
-
-[Back to Top](#topguide)
-
-##### <a id="database4"></a>Execute a prepared statement
-```php
-$CURATOR_DB->executeStatement();
-```
-
-**NOTE**: This method does not return any value. It executes the prepared statement and assigns it to a private object variable.
-
-[Back to Top](#topguide)
-
-##### <a id="database5"></a>Retrieve a **single row** result from executed query
-```php
-$data = $CURATOR_DB->getResultSingle();
-```
-
-[Back to Top](#topguide)
-
-##### <a id="database6"></a>Retrieve a **many row** result from executed query
-```php
-$data = $CURATOR_DB->getResultMany();
-```
-
-[Back to Top](#topguide)
-
-##### <a id="database7"></a>Retrieve a single **column** result from executed query
-```php
-$data = $CURATOR_DB->getResultColumn(); //Returns the first single result value.
-```
-
-OR
+Your first course of action is to configure Curator Session by modifying the **config.php** file. The configuration options are explained in the Configuration section of this readme. Once configured, you must include the application file into your page(s).
 
 ```php
-$data = $CURATOR_DB->getResultColumn(3); //Returns the 3rd single result value.
+require_once('session/App.php');
 ```
 
-[Back to Top](#topguide)
+Finally you will then create your Curator Session object. This is done using a method as this class is designed in the Singleton pattern.
 
-##### <a id="database8"></a>Get the row count of the executed statement
 ```php
-$data = $CURATOR_DB->getRowCount();
+$mySessionObject = Curator\Session\App::GetSession();
 ```
 
-[Back to Top](#topguide)
+**NOTICE:**
+>This class is namespaced to Curator\Session for your convience. You will only need to worry about the namespace for the inital object creation.
 
-##### <a id="database9"></a>Get the ID of the last inserted row for the executed statement
+####<a id="topMethods"></a>Methods
+- [Start A New Session](#startsession)
+- [Encode Data](#encode)
+- [Get Session Value](#getvalue)
+- [Set Session Value](#setvalue)
+- [Get Cookie Value](#getcookie)
+- [Set Cookie Value](#setcookie)
+- [Delete Cookie Value](#deletecookie)
+- [Destroy Session](#destroysession)
+- [Destroy Cookies](#destroycookies)
+
+##### <a id="startsession"></a>Start A New Session
+
 ```php
-$data = $CURATOR_DB->getInsertedID();
+public void App::NewSession ([])
 ```
 
-[Back to Top](#topguide)
+NewSession destroys the previous session and creates a new one. This is not necessary to use unless you want to force the creation of a new session (creating the Curator Session object creates a session by default).
 
-* * *
-
-## <a id="language"></a>Language
-This class is in the **\Curator\Classes** namespace.
-
-##### <a id="language1"></a>Create a language object
 ```php
-$myLanguage = "en_CA";
-$LANG = CLASSES\Language::getLanguage($myLanguage);
+$mySessionObject->NewSession();
 ```
 
-**NOTE**: If the $myLanguage variable is not set, Curator will set the language to it's system default.
+##### <a id="encode"></a>Encode Data
 
-[Back to Top](#topguide)
-
-##### <a id="language2"></a>Load class language file.
-This is an easy way to load your class language files. For Curator these language files are typically for logs (errors and warnings). Path to class language file is *[Curator Language Path]/language_LOCALE/class/__CLASSNAME__.php*.
 ```php
-$this->Language->loadClassLanguage(__CLASS__);
+public string App::Encode ([ string $value = NULL ])
 ```
 
-**NOTE**: If a language file does not exist no errors or logs will be generated.
+The Encode method allows you to encrypt data. This is a one way encryption using the site salt you set in the configuration. This data cannot be decrypted. This means that data you send to Encode will be lost but can be used for comparison later.
 
-[Back to Top](#topguide)
+**TIP**
+>While this method may not be the absolute best for encrypting user passwords, its a start. NEVER store a users password in plain text. Encrypt it then store it. A password should never need to be decrypted. Just compare a users password attempt with the encrypted password - if its a match, grant access.
 
-* * *
-
-## <a id="session"></a>Session
-This class is in the **\Curator\Classes** namespace.
-
-#####  <a id="session1"></a>Get user IP address
 ```php
-echo $CURATOR_SESSION->userIP;
+$encryptedData = $mySessionObject->Encode('Private Data');
 ```
 
-[Back to Top](#topguide)
+[Back to Top](#topMethods)
 
-* * *
+##### <a id="getvalue"></a>Get Session Value
 
-## <a id="log"></a>Log
-This class is in the **\Curator\Classes** namespace.
+```php
+public static string App::GetValue ([ string $variable = NULL ])
+```
 
-[Back to Top](#topguide)
+GetValue returns the value of the passed session variable name. This is the same as accessing the variable directly using $_SESSION['Variable']. However, the purpose of this method is to provide you with a way to create a wrapper and customize this action.
+
+```php
+$myData = $mySessionObject::GetValue('myVariable');
+```
+
+[Back to Top](#topMethods)
+
+##### <a id="setvalue"></a>Set Session Value
+
+```php
+public static void App::SetValue ([ string $variable = NULL ], [ string $value = NULL ])
+```
+
+SetValue assigns data to the session variable of your choice. This is the same as assigning directly with $_SESSION['Variable']. However the purpose of this method is to provide you with a way to create a wrapper and customize this action.
+
+```php
+$mySessionObject::SetValue('myVariable', 'Some Data Here');
+```
+
+[Back to Top](#topMethods)
+
+##### <a id="getcookie"></a>Get Cookie Value
+
+```php
+public static string App::GetCookie ([ string $name = NULL ])
+```
+
+GetCookie returns the data assigned to the passed cookie name.
+
+```php
+$cookieData = $mySessionObject::GetCookie('myCookie');
+```
+
+[Back to Top](#topMethods)
+
+##### <a id="setcookie"></a>Set Cookie Value
+
+```php
+public static bool App::SetCookie
+  (
+      [ string $name     = NULL ],
+      [ string $value    = NULL ],
+      [ string $expire   = COOKIE_LIFETIME ],
+      [ string $path     = COOKIE_PATH ],
+      [ string $domain   = COOKIE_DOMAIN ],
+      [ string $secure   = COOKIE_SECURE ],
+      [ string $httpOnly = COOKIE_HTTPONLY ],
+  )
+```
+
+SetCookie allows you to create a cookie. Only the first 2 parameters are required (name and value). The other variables will be taken from the configuration data. However, you may override these as you see fit.
+
+```php
+$mySessionObject::SetCookie('myCookie', 'Some Data Here');
+```
+
+[Back to Top](#topMethods)
+
+##### <a id="deletecookie"></a>Delete Cookie Value
+
+```php
+public static bool App::DeleteCookie ([ string $name = NULL ])
+```
+
+DeleteCookie allows you to delete cookies. Pass the name of cookie to delete. You will receive back TRUE if deletion was OK and FALSE if not.
+
+```php
+$mySessionObject::DeleteCookie('myCookie');
+```
+
+[Back to Top](#topMethods)
+
+##### <a id="destroysession"></a>Destroy Session
+
+```php
+public static void App::DestroySession ([])
+```
+
+DestroySession completely deletes/destroys your existing session.
+
+```php
+$mySessionObject::DestroySession();
+```
+
+[Back to Top](#topMethods)
+
+##### <a id="destroycookies"></a>Destroy Cookies
+
+```php
+public static void App::DestroyCookie ([])
+```
+
+DestroyCookie completely deletes/destroys your existing cookies.
+
+```php
+$mySessionObject::DestroyCookie();
+```
+
+[Back to Top](#topMethods)
+
+---
+
+#### Configuration
+Curator Session has a large number of configuration options. Not all need to be customized but the option is available to you regardless.
+
+#####SESSION_NAME [STRING]
+Assign a name to your sessions. This name will be the first part of each application session variable such as "MYSITESESSION_status".
+
+>Default Value: 'MYSITESESSION'
+
+#####IP_VALIDATION [BOOL]
+TRUE or FALSE indicates if IP validation is enabled or disabled. This will check if the users IP stays consistant from page to page. As capturing the users IP can be difficult with some users, when an IP cannot be obtained through the server variables Curator Session will allow the user to continue without creating a new session. While this negates this feature completely it allows your sessions to continue running smoothly for all users. This may fool a number of people trying to hijack session ID's but it wont do much against more sophisticated hackers.
+
+>Default Value: TRUE
+
+#####SESSION_IDLE_TIME [INT]
+Set the amount of time (in seconds) you will allow your users to idle until their session is destroyed and created again. For example if set to 1800 (5 minutes) and the user is idle for 6 minutes, their session will be recreated on their next page load.
+
+>Default Value: 1800
+
+#####SESSION_USERAGENT_CHECK [BOOL]
+TRUE or FALSE indicates if the user browser is verified on each page load. This is an extra layer of security to help reduce session hijacking.
+
+>Default Value: TRUE
+
+#####SESSION_SITE_SALT [STRING]
+Create a unique site session salt. This is used in the encode, IP and browser processes.
+
+>Default Value: 'JKfjknfjkfn389f8fhf38FHh830Fq3'
+
+#####SESSION_REGEN_TIME [INT]
+Set the maximum of time that can pass for a user until the session ID is regenerated. This value is in seconds. Regenerating the session ID occasionally is another method of reducing session hijacking.
+
+>Default Value: 300
+
+#####SESSION_REGEN_CHANCE [INT]
+Enter a value from 0-100 which represents the percent chance the session will be regenerated on page load. This adds a unpredictable chance that the session ID will be regenerated on every page load.
+
+>Default Value: 5
+
+#####SESSION_USE_COOKIES [INT]
+Specifies if the server will use cookies to store the session ID on the clide side. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-cookies)
+
+>Default Value: 1
+
+#####SESSION_USE_ONLY_COOKIES [INT]
+Specifies if the server will **only** use cookies to store the session ID on the clide side. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-only-cookies)
+
+>Default Value: 1
+
+#####SESSION_COOKIE_LIFETIME [INT]
+Specifies the lifetime of the cookies in seconds. '0' means until the browser is closed. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime)
+
+>Default Value: 0
+
+#####SESSION_COOKIE_HTTPONLY [INT]
+Specifies if the cookie is accessible only through the HTTP protocol. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-httponly)
+
+>Default Value: 1
+
+#####SESSION_USE_TRANS_SID [INT]
+Specifies if transparent Session ID is enabled or not. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-trans-sid)
+
+>Default Value: 0
+
+#####SESSION_USE_STRICT_MODE [INT]
+Specifies if the server will use strict session ID mode. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.use-strict-mode)
+
+>Default Value: 1
+
+#####SESSION_ENTROPY_FILE [STRING]
+Specifies an external source to be used in the session ID creation. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.entropy-file)
+
+>Default Value: '/dev/urandom'
+
+#####SESSION_ENTROPY_LENGTH [STRING]
+Specifies the number of bytes which will be read from the specified entropy file. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.entropy-length)
+
+>Default Value: '32'
+
+#####SESSION_HASH_BITS_PER_CHARACTER [INT]
+Specifies the number of bits stored in each character when converting the binary hash data to something readable. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.hash-bits-per-character)
+
+>Default Value: 5
+
+#####SESSION_HASH_FUNCTION [STRING]
+Specifies the hash algorithm to be used to generate the session ID's. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.hash-function)
+
+>Default Value: 'sha256'
+
+#####COOKIE_LIFETIME [INT]
+Specifies the lifetime of the cookie in seconds which is sent to the browser. '0' means until the browser is closed.[More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-lifetime)
+
+>Default Value: 0
+
+#####COOKIE_PATH [STRING]
+Specifies the path to set in the session cookie. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-path)
+
+>Default Value: '/'
+
+#####COOKIE_DOMAIN [STRING]
+Specifies the domain to set in the session cookie. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-domain)
+
+>Default Value: ''
+
+#####COOKIE_SECURE [BOOL]
+Specifies whether cookies should be sent over secure connections or not. Enable this if your site uses HTTPS. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-secure)
+
+>Default Value: FALSE
+
+#####COOKIE_HTTPONLY [BOOL]
+Specifies if the cookie is acessible only through the HTTP protocol. [More Information](http://php.net/manual/en/session.configuration.php#ini.session.cookie-httponly)
+
+>Default Value: TRUE

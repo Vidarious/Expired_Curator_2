@@ -4,7 +4,7 @@
  *
  * Written with PHP Version 7.0.6
  *
- * @package    Curator
+ * @package    Curator Session
  * @author     James Druhan <jdruhan.home@gmail.com>
  * @copyright  2016 James Druhan
  * @version    1.0

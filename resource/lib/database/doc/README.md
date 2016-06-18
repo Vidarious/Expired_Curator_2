@@ -79,7 +79,7 @@ $myDatabase = \Curator\Database::GetConnection();
 
 ## <a id="database1"></a>Prepare a SQL statement
 ```php
-public void database::PrepareStatement ([ string $statement = NULL ] )
+public void App::PrepareStatement ([ string $statement = NULL ] )
 ```
 
 Before you can execute a SQL command you must first prepare the statement.
@@ -106,7 +106,7 @@ catch (Exception $e)
 ## <a id="database3"></a>Bind values to a prepared statement
 
 ```php
-public void database::BindValue ([ string $parameter = NULL, string $value = NULL, string $type = NULL ] )
+public void App::BindValue ([ string $parameter = NULL, string $value = NULL, string $type = NULL ] )
 ```
 
 It is highly encouraged to first bind the values to your prepared statement rather then providing direct data. This is done using the BindValue method. It includes providing a parameter in the statement itself using the colon.
@@ -151,7 +151,7 @@ catch (Exception $e)
 
 ## <a id="database4"></a>Execute a prepared statement
 ```php
-public void database::ExecuteQuery ([ NULL ] )
+public void App::ExecuteQuery ([ NULL ] )
 ```
 
 When you are ready to run your statement you must execute it.
@@ -173,7 +173,7 @@ catch (Exception $e)
 
 ## <a id="database5"></a>Retrieve a **single row** from executed query
 ```php
-public void database::GetSingleRow ([ NULL ] )
+public array[] App::GetSingleRow ([ NULL ] )
 ```
 
 If you are using a SELECT command, once you have executed your statement you can use the GetSingleRow() method to access the data returned. Each time you run this command it will iterate through each row in the result. This method returns an array.
@@ -205,7 +205,7 @@ Array
 
 ## <a id="database6"></a>Retrieve **many rows** from executed query
 ```php
-public void database::GetAllRows ([ NULL ] )
+public array[][] App::GetAllRows ([ NULL ] )
 ```
 
 If you want to have access to all returned rows of a SELECT statement in one array use the GetAllRows() method.
@@ -245,7 +245,7 @@ Array
 
 ## <a id="database7"></a>Retrieve a **single column** from executed query
 ```php
-public void database::GetColumn ([ int $index ] )
+public array[] All::GetColumn ([ int $index ] )
 ```
 
 If using a SELECT query you can retrieve a specific column from the returned data using the GetColumn($index) function. Enter the position of the column (0 for the first column and so on) as the $index.
@@ -271,7 +271,7 @@ This command uses the fetchColumn() method. If no index is provided it will retu
 
 ## <a id="database8"></a>Get the row count of the executed statement
 ```php
-public void database::GetRowCount ([ NULL ] )
+public int App::GetRowCount ([ NULL ] )
 ```
 
 To find out how many rows were affected by your query use the GetRowCount() method.
@@ -284,7 +284,7 @@ $rows = $myDatabase->GetRowCount();
 
 ## <a id="database10"></a>Get the column count of the executed statement
 ```php
-public void database::GetColumnCount ([ NULL ] )
+public int App::GetColumnCount ([ NULL ] )
 ```
 
 To find out how many columns were affected by your query use the GetColumnCount() method.
@@ -297,7 +297,7 @@ $columns = $myDatabase->GetColumnCount();
 
 ## <a id="database9"></a>Get the ID of the last inserted row for the executed statement
 ```php
-public void database::GetInsertedID ([ NULL ] )
+public int App::GetInsertedID ([ NULL ] )
 ```
 
 If using the INSERT query you can obtain the last inserted ID by using the GetInsertedID() method.
@@ -310,7 +310,7 @@ $lastID = $myDatabase->GetInsertedID();
 
 ## <a id="database11"></a>Get the prepared statement to use other PDO functions.
 ```php
-public void database::GetPreparedStatement ([ NULL ] )
+public int App::GetPreparedStatement ([ NULL ] )
 ```
 
 For advanced PDO functions you can obtain the prepared statement objaect using the GetPreparedStatement() method.
