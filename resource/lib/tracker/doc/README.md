@@ -12,9 +12,11 @@ This class tracks user's page navigation. Curator Tracker helps keeps tabs on us
 
 First and foremost you should configure the two settings in the App.php page at the top of the document.
 
-**HOME**: This global variable stores the path to your default or home page. This page is used when the a previously recorded page is not found. This happens when your user arrives at your site from another domain or site.
+**HOME**
+>This global variable stores the path to your default or home page. This page is used when the a previously recorded page is not found. This happens when your user arrives at your site from another domain or site.
 
-**SITENAME**: This global variable stores the name of your site. This is used to append with the scripts session variables. For example if your SITENAME was 'GOOGLE' your two session variables would be $_SESSION[GOOGLE_PageCurrent] and $_SESSION[GOOGLE_PagePrevious].
+**SITENAME**
+>This global variable stores the name of your site. This is used to append with the scripts session variables. For example if your SITENAME was 'GOOGLE' your two session variables would be $_SESSION[GOOGLE_PageCurrent] and $_SESSION[GOOGLE_PagePrevious].
 
 Once configured all you need to do is include the App.php file to your page and create a Curator Tracker object.
 
