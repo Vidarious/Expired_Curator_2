@@ -1,18 +1,18 @@
 <?php
  /*
- * Curator Submission is a class which ensures submitted form data is validated prior to your application processing data.
+ * Curator Submission is a class which ensures submitted form data is validated prior to your application processing the data.
  * This reduces bot form submissions and people looking to submit forms maliciously.
  *
  * Written with PHP Version 7.0.6
  *
- * @package    Curator Session
+ * @package    Curator Submission
  * @author     James Druhan <jdruhan.home@gmail.com>
  * @copyright  2016 James Druhan
  * @version    1.0
  */
 namespace Curator\Submission;
 
-//Name of your site. This is appended to Curator Trackers session variables.
+//Name of your site. This is appended to Curator Submission session variables.
 define('Curator\Form\SITENAME', 'CURATOR');
 
 class Form
