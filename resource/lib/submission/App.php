@@ -18,10 +18,10 @@ define('Curator\Form\SITENAME', 'CURATOR');
 class Form
 {
     //Class Properties
-    private $fakeField           = NULL;
-    private $formID              = NULL;
-    private $whiteList           = array();
-    private $delay               = NULL;
+    private $fakeField = NULL;
+    private $formID    = NULL;
+    private $whiteList = array();
+    private $delay     = NULL;
 
     //Object initalization.
     public function __construct($formID = NULL, $fakeField = NULL, $whiteList = array(), $delay = NULL)
@@ -158,7 +158,7 @@ class Form
     //Generate unique & random set of characters.
     public static function GenerateIDToken()
     {
-        return(md5(uniqid(microtime(), true)));
+        return(random_bytes(15));
     }
 
     //Returns a sanitized POST value.
