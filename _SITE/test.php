@@ -15,10 +15,13 @@
 <?php
 
 //Include Curator Session.
-require_once('../resource/lib/tracker/App.php');
+require_once('../resource/lib/database/App.php');
 session_start();
-$myTracker = Curator\Tracker\App::GetTracker();
-var_dump($_SESSION);
+$myTracker = Curator\Database\App::GetConnection();
+$myTracker->PrepareStatement("SELECT * FROM SOMETHING");
+$something = $myTracker->GetPreparedStatement();
+
+var_dump($something);
 ?>
       </div>
       <!-- JavaScript Inserts -->

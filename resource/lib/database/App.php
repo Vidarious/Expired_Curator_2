@@ -9,6 +9,7 @@
  * Properties -> camelCase
  * Constants  -> UPPER_CASE
  *
+ * Requires PHP 7+
  * Written with PHP Version 7.0.6
  *
  * @package    Curator Database
@@ -49,32 +50,32 @@ class App
     private function __wakeup() {}
 
     //Builds PDO connection string depending on PDO driver selected.
-    private function GetServerString()
+    private function GetServerString() : STRING
     {
-        $serverString = NULL;
-
         switch(DRIVER)
         {
             case 'MySQL':
+                return('mysql:host=' . HOST . ';dbname=' . DATABASE_NAME);
+            default:
                 return('mysql:host=' . HOST . ';dbname=' . DATABASE_NAME);
         }
     }
 
     //Returns the singleton instance of the database connection.
-    public static function GetConnection()
+    public static function GetConnection() : SELF
     {
-        static $pdoInstance = NULL;
+        static $dbInstance = NULL;
 
-        if($pdoInstance === NULL)
+        if($dbInstance === NULL)
         {
-            $pdoInstance = new static();
+            $dbInstance = new static();
         }
 
-        return $pdoInstance;
+        return $dbInstance;
     }
 
     //Prepares database query using PDO.
-    public function PrepareStatement($statement = NULL)
+    public function PrepareStatement(STRING $statement = NULL) : BOOL
     {
         //Verify data has been provided to the function.
         if(empty($statement))
@@ -87,16 +88,24 @@ class App
             try
             {
                 $this->preparedStatement = $this->databaseConnection->prepare($statement);
+
+                //Check to ensure statement was correctly prepared.
+                if($this->preparedStatement === FALSE)
+                {
+                    throw new \Error('Unable to prepare query. Verify syntax.');
+                }
             }
             catch (\Throwable $pdoError)
             {
                 throw new \Error('Unable to prepare query. Verify syntax.');
             }
+
+            return(TRUE);
         }
     }
 
     //Binds value to prepared statement parameter.
-    public function BindValue($parameter = NULL, $value = NULL, $type = NULL)
+    public function BindValue($parameter = NULL, $value = NULL, INT $type = NULL) : BOOL
     {
         //Assign a data type if one is not provided.
         if(empty($type))
@@ -107,16 +116,24 @@ class App
         //Bind the parameter to the prepared statement.
         try
         {
-            $this->preparedStatement->bindValue($parameter, $value, $type);
+            $binded = $this->preparedStatement->bindValue($parameter, $value, $type);
+
+            //Check to ensure the value was correctly binded.
+            if($binded === FALSE)
+            {
+                throw new \Error('Unable to bind data to query. Verify syntax and variable data.');
+            }
         }
         catch (\Throwable $pdoError)
         {
             throw new \Error('Unable to bind data to query. Verify syntax and variable data.');
         }
+
+        return(TRUE);
     }
 
     //Determine the parameter data type (INT/BOOL/NULL/STR).
-    private function GetType($value = NULL)
+    private function GetType($value = NULL) : INT
     {
         switch(TRUE)
         {
@@ -132,31 +149,39 @@ class App
     }
 
     //Executes the prepared statement.
-    public function ExecuteQuery()
+    public function ExecuteQuery() : BOOL
     {
         if(empty($this->preparedStatement))
         {
-            throw new \Error('Query to execute.');
+            throw new \Error('There is no Query to execute.');
         }
 
         try
         {
-            $this->preparedStatement->execute();
+            $executed = $this->preparedStatement->execute();
+
+            //Check to ensure the query was executed correctly.
+            if($executed === FALSE)
+            {
+                throw new \Error('Unable to execute the query. Verify statement.');
+            }
         }
         catch (\Throwable $pdoError)
         {
             throw new \Error('Unable to execute the query. Verify statement.');
         }
+
+        return(TRUE);
     }
 
     //Returns an array which contains the next row from the executed statement.
-    public function GetSingleRow()
+    public function GetSingleRow() : ARRAY
     {
         return($this->preparedStatement->fetch(\PDO::FETCH_ASSOC));
     }
 
     //Returns an array which contains all rows of the executed statement.
-    public function GetAllRows()
+    public function GetAllRows() : ARRAY
     {
         return($this->preparedStatement->fetchAll(\PDO::FETCH_ASSOC));
     }
@@ -168,25 +193,25 @@ class App
     }
 
     //Returns the number of rows affected by the executed statement.
-    public function GetRowCount()
+    public function GetRowCount() : INT
     {
         return($this->preparedStatement->rowCount());
     }
 
     //Returns the number of columns affected by the executed statement.
-    public function GetColumnCount()
+    public function GetColumnCount() : INT
     {
         return($this->preparedStatement->columnCount());
     }
 
     //Returns the ID of the last inserted row.
-    public function GetInsertedID()
+    public function GetInsertedID() : INT
     {
         return($this->databaseConnection->lastInsertId());
     }
 
     //Returns the prepared statement for manual PDO control.
-    public function GetPreparedStatement()
+    public function GetPreparedStatement() : \PDOStatement
     {
         return($this->preparedStatement);
     }
