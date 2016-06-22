@@ -35,6 +35,9 @@ class App
                 //Session is secure. See if the Session ID needs to be regenerated.
                 self::TryRegenerate();
 
+                //Assigning new idle checkpoint.
+                $_SESSION[SESSION_NAME]['idleTime'] = time();
+
                 return;
             }
         }
@@ -91,14 +94,20 @@ class App
     protected function SecureSession() : BOOL
     {
         //Four confirmations to see if the session is secure.
-        if(!isset($_SESSION[SESSION_NAME]['status']) || !self::ConfirmTimeOut() || !self::ConfirmUserAgent())
+        if(!isset($_SESSION[SESSION_NAME]['status']) || !self::ConfirmTimeOut())
         {
             //Secure check(s) failed.
             return(FALSE);
         }
 
+        //Checks user agent if enabled.
+        if(SESSION_USERAGENT_CHECK && isset($_SERVER['HTTP_USER_AGENT']) && self::ConfirmUserAgent() === FALSE)
+        {
+            return(FALSE);
+        }
+
         //Determines users IP and validates it.
-        if(IP_VALIDATION && self::GetIP() === TRUE && self::ConfirmIP() === FALSE)
+        if(IP_VALIDATION && self::DetermineIP() === TRUE && self::ConfirmIP() === FALSE)
         {
             return(FALSE);
         }
@@ -107,7 +116,7 @@ class App
     }
 
     //Verifies if the current session has timed out.
-    protected function ConfirmTimeOut()
+    protected function ConfirmTimeOut() : BOOL
     {
         //Check if an existing session is in progress.
         if(isset($_SESSION[SESSION_NAME]['idleTime']))
@@ -116,9 +125,6 @@ class App
 
             if($idleLength < SESSION_IDLE_TIME)
             {
-                //User is within idle limit. Assigning new idle checkpoint.
-                $_SESSION[SESSION_NAME]['idleTime'] = time();
-
                 return(TRUE);
             }
         }
@@ -129,26 +135,23 @@ class App
 
     //Confirms if users agent is same as the sessions user.
     //The user agent is hashed for added protection.
-    protected function ConfirmUserAgent()
+    protected function ConfirmUserAgent() : BOOL
     {
-
-        if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT']))
+        if(isset($_SESSION[SESSION_NAME]['userAgent']))
         {
-            $userAgent = self::Hash(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
-
-            if(!isset($_SESSION[SESSION_NAME]['userAgent']) || ($_SESSION[SESSION_NAME]['userAgent'] != $userAgent))
+            if(password_verify(htmlspecialchars($_SERVER['HTTP_USER_AGENT']), $_SESSION[SESSION_NAME]['userAgent']) === TRUE)
             {
-                //Fail if there is no recorded user agent or if the user agent recorded does not match the current.
-                return(FALSE);
+                //Pass if recorded user agent is good.
+                return(TRUE);
             }
         }
 
-        //Pass if recorded user agent is good or if there is no HTTP_USER_AGENT (ensures application continues).
-        return(TRUE);
+        //Fail if there is no recorded user agent or if the user agent recorded does not match the current.
+        return(FALSE);
     }
 
-    //Get the user IP from $_SERVER data is a valid IPV4 or IPV6 IP address.
-    protected function GetIP() : BOOL
+    //Determine the user IP from $_SERVER data is a valid IPV4 or IPV6 IP address.
+    protected function DetermineIP() : BOOL
     {
         //Create array of possible IP locations.
         $ipLocations = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
@@ -192,7 +195,7 @@ class App
     }
 
     //Hash the passed value with the Curator's salt.
-    public function Hash() : STRING
+    public function Hash($value) : STRING
     {
         return(password_hash($value, PASSWORD_DEFAULT));
     }
@@ -201,11 +204,10 @@ class App
     public function NewSession()
     {
         self::DestroySession();
-        self::InitializeSession();
 
-        session_start();
+        session_start(self::InitializeSession());
 
-        if(IP_VALIDATION === TRUE)
+        if(IP_VALIDATION && self::DetermineIP() === TRUE)
         {
             $_SESSION[SESSION_NAME]['userKey'] = self::Hash($this->userIP);
         }
@@ -215,6 +217,7 @@ class App
             $_SESSION[SESSION_NAME]['userAgent'] = self::Hash(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
         }
 
+        //Set all the necessary session timings.
         $_SESSION[SESSION_NAME]['startTime'] = $_SESSION[SESSION_NAME]['idleTime'] = $_SESSION[SESSION_NAME]['regenTime'] = time();
         $_SESSION[SESSION_NAME]['status']    = TRUE;
     }
@@ -231,9 +234,9 @@ class App
     }
 
     //Regenerate Session ID based on config set time length.
-    protected function RegenerateTime()
+    protected function RegenerateTime() : BOOL
     {
-        if(SESSION_REGEN_TIME !== FALSE)
+        if(is_int(SESSION_REGEN_TIME) === TRUE && isset($_SESSION[SESSION_NAME]['regenTime']))
         {
             //Last time the session ID was regenerated.
             $regenLength = time() - $_SESSION[SESSION_NAME]['regenTime'];
@@ -256,7 +259,7 @@ class App
     //Regenerate Session ID every X% of the time which is admin set.
     protected function RegeneratePercent()
     {
-        if(SESSION_REGEN_CHANCE !== FALSE)
+        if(is_int(SESSION_REGEN_CHANCE) === TRUE)
         {
             //Generate based on % chance set by config (Value: 1 - 100) out of 100.
             if(random_int(0, 100) <= SESSION_REGEN_CHANCE)
@@ -283,7 +286,7 @@ class App
     {
         if(isset($variable))
         {
-            if(empty($value))
+            if(empty($value) && isset($_SESSION[$variable]))
             {
                 //Delete the variable.
                 unset($_SESSION[$variable]);
@@ -307,7 +310,7 @@ class App
     }
 
     //Sets a cookie value.
-    public static function SetCookie($name = NULL, $value = NULL, $expire = COOKIE_LIFETIME, $path = COOKIE_PATH, $domain = COOKIE_DOMAIN, $secure = COOKIE_SECURE, $httpOnly = COOKIE_HTTPONLY)
+    public static function SetCookie($name = NULL, $value = NULL, $expire = COOKIE_LIFETIME, $path = COOKIE_PATH, $domain = COOKIE_DOMAIN, $secure = COOKIE_SECURE, $httpOnly = COOKIE_HTTPONLY) : BOOL
     {
         if(isset($name) && isset($value))
         {
@@ -320,7 +323,7 @@ class App
     }
 
     //Deletes a cookie value.
-    public static function DeleteCookie($name = NULL)
+    public static function DeleteCookie($name = NULL) : BOOL
     {
         if(isset($name) && isset($_COOKIE[$name]))
         {
