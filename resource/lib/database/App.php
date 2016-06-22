@@ -76,7 +76,7 @@ class App
             $dbInstance = new static();
         }
 
-        return $dbInstance;
+        return($dbInstance);
     }
 
     //Prepares database query using PDO.
