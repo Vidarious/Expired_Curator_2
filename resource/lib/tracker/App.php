@@ -26,8 +26,8 @@ class App
     //Object initalization. Singleton design.
     protected function __construct()
     {
-        self::GetCurrentPage();
-        self::GetPastPage();
+        self::SetCurrentPage();
+        self::SetPastPage();
         self::UpdateSessionPages();
     }
 
@@ -36,7 +36,7 @@ class App
     private function __wakeup() {}
 
     //Returns the singleton instance of the Session object.
-    public static function GetTracker()
+    public static function GetTracker() : SELF
     {
         static $trackerInstance = NULL;
 
@@ -49,7 +49,7 @@ class App
     }
 
     //Get current page URI.
-    private function GetCurrentPage()
+    private function SetCurrentPage()
     {
         if(!empty($_SERVER['REQUEST_URI']))
         {
@@ -58,7 +58,7 @@ class App
     }
 
     //Get past page URI.
-    private function GetPastPage()
+    private function SetPastPage()
     {
         if(!empty($_SESSION[SITENAME . '_PageCurrent']))
         {
