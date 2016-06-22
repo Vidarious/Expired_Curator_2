@@ -39,8 +39,13 @@ class App
             //Open connection to database.
             $this->databaseConnection = new \PDO($pdoServerString, USERNAME, PASSWORD, $pdoOptionString);
         }
-        catch (\Throwable $t)
+        catch (\Throwable $pdoError)
         {
+            if(DEVELOPMENT === TRUE)
+            {
+                throw new \Error('Unable to connect to database. Check configuration data. Details: ' . $pdoError->getMessage());
+            }
+
             throw new \Error('Unable to connect to database. Check configuration data.');
         }
     }
@@ -97,6 +102,11 @@ class App
             }
             catch (\Throwable $pdoError)
             {
+                if(DEVELOPMENT === TRUE)
+                {
+                    throw new \Error('Unable to prepare query. Verify syntax. Details: ' . $pdoError->getMessage());
+                }
+
                 throw new \Error('Unable to prepare query. Verify syntax.');
             }
 
@@ -126,6 +136,11 @@ class App
         }
         catch (\Throwable $pdoError)
         {
+            if(DEVELOPMENT === TRUE)
+            {
+                throw new \Error('Unable to bind data to query. Verify syntax and variable data. Details: ' . $pdoError->getMessage());
+            }
+
             throw new \Error('Unable to bind data to query. Verify syntax and variable data.');
         }
 
@@ -168,6 +183,11 @@ class App
         }
         catch (\Throwable $pdoError)
         {
+            if(DEVELOPMENT === TRUE)
+            {
+                throw new \Error('Unable to execute the query. Verify statement. Details: ' . $pdoError->getMessage());
+            }
+
             throw new \Error('Unable to execute the query. Verify statement.');
         }
 

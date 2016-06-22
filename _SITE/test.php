@@ -17,11 +17,20 @@
 //Include Curator Session.
 require_once('../resource/lib/database/App.php');
 session_start();
-$myTracker = Curator\Database\App::GetConnection();
-$myTracker->PrepareStatement("SELECT * FROM SOMETHING");
-$something = $myTracker->GetPreparedStatement();
+try {
+    $myTracker = Curator\Database\App::GetConnection();
+} catch (Throwable $e) {
+    echo $e;
+    echo "<br /><br />";
 
-var_dump($something);
+}
+
+
+
+//$myTracker->PrepareStatement("SELECT * FROM SOMETHING");
+//$something = $myTracker->GetPreparedStatement();
+
+//var_dump($something);
 ?>
       </div>
       <!-- JavaScript Inserts -->

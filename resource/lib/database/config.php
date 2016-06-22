@@ -25,4 +25,8 @@ define('Curator\Database\USERNAME', 'temp');
 
 //Login password for database server.
 define('Curator\Database\PASSWORD', 'temp');
+
+//Enable or disble development mode. This turns on or off the display of PDO exceptions.
+//WARNING: Do not enable this on a production environment unless you are OK with potentially exposing your database query details.
+define('Curator\Database\DEVELOPMENT', TRUE);
 ?>
