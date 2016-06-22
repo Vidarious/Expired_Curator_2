@@ -15,7 +15,7 @@ require_once('config.php');
 
 class App
 {
-    //Class Properties (Variable)
+    //Class Properties
     private $userIP = 'NULL';
 
     //Class initalization. Singleton design.
@@ -24,22 +24,23 @@ class App
         //Initialize cookie settings.
         self::InitializeCookie();
 
-        //Initialize session settings.
-        self::InitializeSession();
-
-        //Start the session.
-        session_start();
+        //Initialize & start the session.
+        session_start(self::InitializeSession());
 
         if(isset($_SESSION[SESSION_NAME]['status']) && $_SESSION[SESSION_NAME]['status'] === TRUE)
         {
             //Secure the session.
-            self::SecureSession();
+            if(self::SecureSession() === TRUE)
+            {
+                //Session is secure. See if the Session ID needs to be regenerated.
+                self::TryRegenerate();
+
+                return;
+            }
         }
-        else
-        {
-            //Start a new session.
-            self::NewSession();
-        }
+
+        //Start a new session.
+        self::NewSession();
     }
 
     //Singleton design.
@@ -47,7 +48,7 @@ class App
     private function __wakeup() {}
 
     //Returns the singleton instance of the Session object.
-    public static function GetSession()
+    public static function GetSession() : SELF
     {
         static $sessionInstance = NULL;
 
@@ -66,71 +67,43 @@ class App
     }
 
     //Set all session configuration settings.
-    protected function InitializeSession()
+    protected function InitializeSession() : ARRAY
     {
-        ini_set('session.use_cookies',             SESSION_USE_COOKIES);
-        ini_set('session.use_only_cookies',        SESSION_USE_ONLY_COOKIES);
-        ini_set('session.cookie_lifetime',         SESSION_COOKIE_LIFETIME);
-        ini_set('session.cookie_httponly',         SESSION_COOKIE_HTTPONLY);
-        ini_set('session.use_trans_sid',           SESSION_USE_TRANS_SID);
-        ini_set('session.use_strict_mode',         SESSION_USE_STRICT_MODE);
-        ini_set('session.entropy_file',            SESSION_ENTROPY_FILE);
-        ini_set('session.entropy_length',          SESSION_ENTROPY_LENGTH);
-        ini_set('session.hash_bits_per_character', SESSION_HASH_BITS_PER_CHARACTER);
-        ini_set('session.hash_function',           SESSION_HASH_FUNCTION);
+        $sessionSettings = array
+        (
+            'use_cookies'             => SESSION_USE_COOKIES,
+            'use_only_cookies'        => SESSION_USE_ONLY_COOKIES,
+            'cookie_lifetime'         =>SESSION_COOKIE_LIFETIME,
+            'cookie_httponly'         => SESSION_COOKIE_HTTPONLY,
+            'use_trans_sid'           => SESSION_USE_TRANS_SID,
+            'use_strict_mode'         => SESSION_USE_STRICT_MODE,
+            'entropy_file'            => SESSION_ENTROPY_FILE,
+            'entropy_length'          => SESSION_ENTROPY_LENGTH,
+            'hash_bits_per_character' => SESSION_HASH_BITS_PER_CHARACTER,
+            'hash_function'           => SESSION_HASH_FUNCTION,
+            'name'                    => SESSION_NAME
+        );
 
-        session_name(SESSION_NAME);
+        return($sessionSettings);
     }
 
     //Secures the session from hijacking.
-    protected function SecureSession()
+    protected function SecureSession() : BOOL
     {
-        //Determines users IP.
-        if(IP_VALIDATION)
-        {
-            self::ValidateIP();
-        }
-
         //Four confirmations to see if the session is secure.
-        if(!isset($_SESSION[SESSION_NAME]['status']) || !self::ConfirmTimeOut() || !self::ConfirmUserAgent() || !self::ConfirmIP())
+        if(!isset($_SESSION[SESSION_NAME]['status']) || !self::ConfirmTimeOut() || !self::ConfirmUserAgent())
         {
-            //Secure check(s) failed. Create new session.
-            self::NewSession();
-
-            return;
+            //Secure check(s) failed.
+            return(FALSE);
         }
 
-        //Session is secure. See if the Session ID needs to be regenerated.
-        self::TryRegenerate();
-    }
-
-    //Validate the user IP from $_SERVER data is a valid IPV4 or IPV6 IP address.
-    protected function ValidateIP()
-    {
-        //Create array of possible IP locations.
-        $ipLocations = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
-
-        //Check each possible location for valid IP.
-        foreach($ipLocations as $key)
+        //Determines users IP and validates it.
+        if(IP_VALIDATION && self::GetIP() === TRUE && self::ConfirmIP() === FALSE)
         {
-            if(array_key_exists($key, $_SERVER) === TRUE)
-            {
-                $ipData = htmlspecialchars($_SERVER[$key]);
-
-                foreach(explode(',', $ipData) as $userIP)
-                {
-                    $userIP = trim($userIP);
-
-                    if (filter_var($userIP, FILTER_VALIDATE_IP) !== FALSE)
-                    {
-                        return($this->userIP = $userIP);
-                    }
-                }
-            }
+            return(FALSE);
         }
 
-        //User IP could not be obtained through header information. 'NULL' will be used.
-        return(FALSE);
+        return(TRUE);
     }
 
     //Verifies if the current session has timed out.
@@ -155,13 +128,13 @@ class App
     }
 
     //Confirms if users agent is same as the sessions user.
-    //The user agent is encoded for added protection.
+    //The user agent is hashed for added protection.
     protected function ConfirmUserAgent()
     {
 
         if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT']))
         {
-            $userAgent = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
+            $userAgent = self::Hash(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
 
             if(!isset($_SESSION[SESSION_NAME]['userAgent']) || ($_SESSION[SESSION_NAME]['userAgent'] != $userAgent))
             {
@@ -174,28 +147,54 @@ class App
         return(TRUE);
     }
 
-    //Confirms if users IP is same as the sessions user.
-    protected function ConfirmIP()
+    //Get the user IP from $_SERVER data is a valid IPV4 or IPV6 IP address.
+    protected function GetIP() : BOOL
     {
-        //Check if IP Enforcement is enabled. The IP is encrypted and hidden in a non-obvious variable.
-        if(IP_VALIDATION === TRUE)
-        {
-            $userKey = self::Encode($this->userIP);
+        //Create array of possible IP locations.
+        $ipLocations = array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_X_FORWARDED', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_FORWARDED_FOR', 'HTTP_FORWARDED', 'REMOTE_ADDR');
 
-            if(!isset($_SESSION[SESSION_NAME]['userKey']) || ($_SESSION[SESSION_NAME]['userKey'] != $userKey))
+        //Check each possible location for valid IP.
+        foreach($ipLocations as $key)
+        {
+            if(array_key_exists($key, $_SERVER) === TRUE)
             {
-                return(FALSE);
+                $ipData = htmlspecialchars($_SERVER[$key]);
+
+                foreach(explode(',', $ipData) as $userIP)
+                {
+                    $userIP = trim($userIP);
+
+                    if (filter_var($userIP, FILTER_VALIDATE_IP) !== FALSE)
+                    {
+                        $this->userIP = $userIP;
+
+                        return(TRUE);
+                    }
+                }
             }
+        }
+
+        //User IP could not be obtained through header information. 'NULL' will be used.
+        return(FALSE);
+    }
+
+    //Confirms if users IP is same as the sessions user.
+    protected function ConfirmIP() : BOOL
+    {
+        //Check if IP Enforcement is enabled. The IP is hashed and hidden in a non-obvious variable.
+        if(password_verify($this->userIP, $_SESSION[SESSION_NAME]['userKey']) === FALSE)
+        {
+            return(FALSE);
         }
 
         //Pass if user IP is same as the recorded session IP or if the user does not have a valid IP. Keeps the applcation running.
         return(TRUE);
     }
 
-    //Encode the passed value with the Curator's salt.
-    public function Encode($value = NULL)
+    //Hash the passed value with the Curator's salt.
+    public function Hash() : STRING
     {
-        return(hash(SESSION_HASH_FUNCTION, $value . SESSION_SITE_SALT));
+        return(password_hash($value, PASSWORD_DEFAULT));
     }
 
     //Starts a new session for the user.
@@ -208,12 +207,12 @@ class App
 
         if(IP_VALIDATION === TRUE)
         {
-            $_SESSION[SESSION_NAME]['userKey'] = self::Encode($this->userIP);
+            $_SESSION[SESSION_NAME]['userKey'] = self::Hash($this->userIP);
         }
 
         if(SESSION_USERAGENT_CHECK === TRUE && isset($_SERVER['HTTP_USER_AGENT']))
         {
-            $_SESSION[SESSION_NAME]['userAgent'] = self::Encode(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
+            $_SESSION[SESSION_NAME]['userAgent'] = self::Hash(htmlspecialchars($_SERVER['HTTP_USER_AGENT']));
         }
 
         $_SESSION[SESSION_NAME]['startTime'] = $_SESSION[SESSION_NAME]['idleTime'] = $_SESSION[SESSION_NAME]['regenTime'] = time();
@@ -260,7 +259,7 @@ class App
         if(SESSION_REGEN_CHANCE !== FALSE)
         {
             //Generate based on % chance set by config (Value: 1 - 100) out of 100.
-            if((mt_rand(0,100)) <= SESSION_REGEN_CHANCE)
+            if(random_int(0, 100) <= SESSION_REGEN_CHANCE)
             {
                 //Buy a lotto ticket! Session will be regenerated.
                 session_regenerate_id(TRUE);

@@ -27,9 +27,6 @@ define('Curator\Session\SESSION_IDLE_TIME', 1800);
 //User agent checking is not always accurate due to many user factors.
 define('Curator\Session\SESSION_USERAGENT_CHECK', TRUE);
 
-//Your site salt value for encrypting various pieces of user data.
-define('Curator\Session\SESSION_SITE_SALT', 'JKfjknfjkfn389f8fhf38FHh830Fq3');
-
 //Sets the amount of time that can elapse until the session ID is regenerated for added security.
 //Suggested value is 300 seconds (5 minutes). Set to FALSE to disable this option.
 define('Curator\Session\SESSION_REGEN_TIME', 300);
