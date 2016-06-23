@@ -18,7 +18,7 @@ define('Curator\Form\SITENAME', 'CURATOR');
 class App
 {
     //Class Properties
-    private $honeyPot = NULL;
+    private $honeyPot  = NULL;
     private $formID    = NULL;
     private $whiteList = array();
     private $delay     = NULL;
@@ -26,6 +26,11 @@ class App
     //Object initalization.
     public function __construct(STRING $formID = NULL, STRING $honeyPot = NULL, ARRAY $whiteList = array(), $delay = NULL)
     {
+        if(session_status() !== PHP_SESSION_ACTIVE)
+        {
+            throw new \Error('Curator Form requires sessions. Please start them prior to creating a new object.');
+        }
+
         //Set the field which will hold the hidden CAPTCHA value.
         $this->honeyPot = $honeyPot;
 
@@ -36,7 +41,7 @@ class App
         $this->whiteList = $whiteList;
 
         //Sets the time (in seconds) that must elapse before another form Form will be processed.
-        $this->$delay = $delay;
+        $this->delay = $delay;
     }
 
     //Checks the state of the submitted form data. TRUE = Form is OK. FALSE = Form is No Good.
@@ -149,16 +154,16 @@ class App
         return(FALSE);
     }
 
-    //Creates and sets a random unique value which will be used for form validation on submisison.
-    public static function AssignIDToken()
-    {
-        return($_SESSION[SITENAME . '_formID'] = self::GenerateToken());
-    }
-
     //Generate unique & random set of characters.
     public static function GenerateIDToken()
     {
         return(random_bytes(15));
+    }
+
+    //Creates and sets a random unique value which will be used for form validation on submisison.
+    public static function AssignIDToken()
+    {
+        return($_SESSION[SITENAME . '_formID'] = self::GenerateIDToken());
     }
 
     //Checks the POST value to ensure it matches the passed type.
@@ -170,28 +175,44 @@ class App
             {
                 //Check if value is a number.
                 case 'NUMBER':
-                    if(is_int($_POST[$postValue]) || is_float($_POST[$postValue]))
+                {
+                    if(is_int($_POST[$postValue]) || is_float($_POST[$postValue] + 0))
                     {
                         return(TRUE);
                     }
+
+                    break;
+                }
                 //Check if value is alphabetical.
                 case 'ALPHA':
+                {
                     if(ctype_alpha($_POST[$postValue]))
                     {
                         return(TRUE);
                     }
+
+                    break;
+                }
                 //Check if value is alphanumeric.
                 case 'ALPHANUMERIC':
+                {
                     if(ctype_alnum($_POST[$postValue]))
                     {
                         return(TRUE);
                     }
+
+                    break;
+                }
                 //Check if value is a valid e-mail.
                 case 'EMAIL':
+                {
                     if(filter_var($_POST[$postValue], FILTER_VALIDATE_EMAIL))
                     {
                         return(TRUE);
                     }
+                }
+
+                break;
             }
         }
 
@@ -199,13 +220,21 @@ class App
     }
 
     //Sanitizes the value passed with the options.
-    public static function Sanitize($value, ARRAY $options = NULL)
+    public static function Sanitize($value, $options = NULL)
     {
         //Convert options to allow for lower and uppercase.
         if(empty($options))
         {
             //Default options.
-            return(filter_var(trim($value), FILTER_SANITIZE_STRING | FILTER_SANITIZE_MAGIC_QUOTES));
+            return(filter_var(addslashes(trim($value)), FILTER_SANITIZE_STRING));
+        }
+        else
+        {
+            //If only a string convert to array for processing.
+            if(!is_array($options))
+            {
+                $options = array($options);
+            }
         }
 
         //Convert the options to uppercase to allow both lower and upper cases.
@@ -272,40 +301,36 @@ class App
                 //If the option is not recognized, throw and error.
                 default:
                 {
-                    throw new \Error('Option: ' . $item . 'is invalid. Unable to sanitize.');
+                    throw new \Error('Sanitize option: ' . $item . ' is invalid. Unable to sanitize.');
                 }
             }
         }
+
+        return($value);
     }
 
-    //Sanitizes the values in an array.
-    public static function SanitizeArray(ARRAY $data, ARRAY $options = NULL)
+    //Sanitizes the values in an array. Does not sanitize keys.
+    public static function SanitizeArray(ARRAY $data, $options = NULL)
     {
-        //Convert options to allow for lower and uppercase.
+        //Check if options are set. If not, default sanitize.
         if(empty($options))
         {
-            //Default options.
-            foreach($data as &$key => &$value)
+            foreach($data as $key => &$value)
             {
-                if(is_array($key))
-                {
-                    foreach($key as &$subKey => &$subValue)
-                    {
-                        $subKey   = trim($subKey);
-                        $subValue = trim($subValue);
-                    }
-
-                    unset($subKey, $subValue);
-                }
-                else
-                {
-                    $value = trim($value);
-                }
+                $value = trim($value);
             }
 
-            unset($key, $value);
+            unset($value);
 
             return(filter_var_array($data, FILTER_SANITIZE_STRING | FILTER_SANITIZE_MAGIC_QUOTES));
+        }
+        else
+        {
+            //If only a string convert to array for processing.
+            if(!is_array($options))
+            {
+                $options = array($options);
+            }
         }
 
         //Convert the options to uppercase to allow both lower and upper cases.
@@ -323,51 +348,51 @@ class App
                 //E - Remove all characters excluding those allowable in a e-mail address.
                 case 'E':
                 {
-                    $value = filter_var_array($value, FILTER_SANITIZE_EMAIL);
+                    $data = filter_var_array($data, FILTER_SANITIZE_EMAIL);
                     break;
                 }
 
                 //M = Escapes the value with slashes before special characters.
                 case 'M':
                 {
-                    $value = filter_var_array($value, FILTER_SANITIZE_MAGIC_QUOTES);
+                    $data = filter_var_array($data, FILTER_SANITIZE_MAGIC_QUOTES);
                     break;
                 }
 
                 //I = Remove all characters excluding digits, '+' and '-'.
                 case 'I':
                 {
-                    $value = filter_var_array($value, FILTER_SANITIZE_NUMBER_INT);
+                    $data = filter_var_array($data, FILTER_SANITIZE_NUMBER_INT);
                     break;
                 }
 
                 //U = Remove all characters excluding those allowable in a URL.
                 case 'U':
                 {
-                    $value = filter_var_array($value, FILTER_SANITIZE_URL);
+                    $data = filter_var_array($data, FILTER_SANITIZE_URL);
                     break;
                 }
 
                 //S = Remove all HTML and PHP tags.
                 case 'S':
                 {
-                    $value = filter_var_array($value, FILTER_SANITIZE_STRING);
+                    $data = filter_var_array($data, FILTER_SANITIZE_STRING);
                     break;
                 }
 
                 //H = Converts special characters to HTML entities.
                 case 'H':
                 {
-                    $value = filter_var_array($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+                    $data = filter_var_array($data, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
                     break;
                 }
 
                 //T = Trim whitespace from beginning and end of string.
                 case 'T':
                 {
-                    foreach($value as &$item)
+                    foreach($data as $key => &$value)
                     {
-                        $item = trim($item);
+                        $value = trim($value);
                     }
 
                     unset($item);
@@ -378,10 +403,12 @@ class App
                 //If the option is not recognized, throw and error.
                 default:
                 {
-                    throw new \Error('Option: ' . $item . 'is invalid. Unable to sanitize.');
+                    throw new \Error('Option: ' . $item . ' is invalid. Unable to sanitize.');
                 }
             }
         }
+
+        return($data);
     }
 }
 ?>
