@@ -26,6 +26,11 @@ class App
     //Object initalization. Singleton design.
     protected function __construct()
     {
+        if(session_status() !== PHP_SESSION_ACTIVE)
+        {
+            throw new \Error('Curator Tracker requires sessions. Please start them prior to creating a new object.');
+        }
+
         self::SetCurrentPage();
         self::SetPastPage();
         self::UpdateSessionPages();
