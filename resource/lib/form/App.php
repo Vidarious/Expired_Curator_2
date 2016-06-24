@@ -31,6 +31,11 @@ class App
             throw new \Error('Curator Form requires sessions. Please start them prior to creating a new object.');
         }
 
+        if($formID === NULL)
+        {
+            throw new \Error('Curator Form requires a Form ID. Assign a token.');
+        }
+
         //Set the field which will hold the hidden CAPTCHA value.
         $this->honeyPot = $honeyPot;
 
@@ -48,22 +53,22 @@ class App
     public function Validate() : BOOL
     {
         //If a form with the passed ID has been submitted.
-        if(!empty($_POST) && array_key_exists($formID, $_POST))
+        if(!empty($_POST) && array_key_exists($this->formID, $_POST) && !empty($_POST[$this->formID]))
         {
             //Verify the form ID in the POST array matches the session form ID.
-            if(isset($_SESSION[SITENAME . '_formID']) && $formID !== NULL && self::VerifyFormID() === FALSE)
+            if(!empty($_SESSION[SITENAME . '_formID']) && self::VerifyFormID() === FALSE)
             {
                 return(FALSE);
             }
 
             //Verify the POST array matches the passed whitelist.
-            if(empty($whiteList) || self::VerifyAprileList() === FALSE)
+            if(!empty($this->whiteList) && self::VerifyAprileList() === FALSE)
             {
                 return(FALSE);
             }
 
             //Check for flooding. Check only happens if a delay is set.
-            if(is_int($delay) === TRUE && self::FloodProtect() === FALSE)
+            if(is_int($this->delay) === TRUE && self::FloodProtect() === FALSE)
             {
                 return(FALSE);
             }
@@ -85,13 +90,15 @@ class App
     //Validate the form ID in the POST data matches the passed ID. TRUE = OK. FALSE = Failed.
     private function VerifyFormID() : BOOL
     {
-        if(Sanitize($_POST[$this->formID]) == $_SESSION[SITENAME . '_formID'])
+        if(hash_equals($_POST[$this->formID],$_SESSION[SITENAME . '_formID']))
         {
             //Form ID's are a match. Pass.
+            echo "FormID is Good.<br />";
             return(TRUE);
         }
 
         //Form ID's do not match. Fail.
+        echo "FormID No Good.<br />";
         return(FALSE);
     }
 
@@ -144,20 +151,22 @@ class App
     //Validate the invisible CAPTCHA. TRUE = OK. FALSE = Failed.
     private function VerifyInvisibleCAPTCHA() : BOOL
     {
-        if(empty(Sanitize($_POST[$this->honeyPot])))
+        if(empty($_POST[$this->honeyPot]))
         {
             //Fake field is empty. Pass.
+            echo "Honey Not Found!.<br />";
             return(TRUE);
         }
 
         //Fake field has unwanted data. Fail.
+        echo "Honey Found!.<br />";
         return(FALSE);
     }
 
     //Generate unique & random set of characters.
-    public static function GenerateIDToken()
+    private static function GenerateIDToken()
     {
-        return(random_bytes(15));
+        return(base64_encode(random_bytes(15)));
     }
 
     //Creates and sets a random unique value which will be used for form validation on submisison.
@@ -220,97 +229,39 @@ class App
     }
 
     //Sanitizes the value passed with the options.
-    public static function Sanitize($value, $options = NULL)
+    public static function Sanitize($data, $options = NULL)
     {
         //Convert options to allow for lower and uppercase.
         if(empty($options))
         {
             //Default options.
-            return(filter_var(addslashes(trim($value)), FILTER_SANITIZE_STRING));
+            return(filter_var(addslashes(trim($data)), FILTER_SANITIZE_STRING));
         }
-        else
+
+        $options = self::MassageOptions($options);
+
+        //T = Trim whitespace from beginning and end of string.
+        if(in_array('T', $options))
         {
-            //If only a string convert to array for processing.
-            if(!is_array($options))
+            $data = trim($data);
+
+            unset($item, $options[array_search('T', $options)]);
+        }
+
+        //Check and perform filter_var sanitization.
+        if(!empty($options))
+        {
+            foreach($options as $item)
             {
-                $options = array($options);
+                $data = filter_var($data, self::GetFilter($item));
             }
         }
 
-        //Convert the options to uppercase to allow both lower and upper cases.
-        foreach($options as &$item)
-        {
-            $item = strtoupper($item);
-        }
-
-        unset($item);
-
-        foreach($options as $item)
-        {
-            switch($item)
-            {
-                //E - Remove all characters excluding those allowable in a e-mail address.
-                case 'E':
-                {
-                    $value = filter_var($value, FILTER_SANITIZE_EMAIL);
-                    break;
-                }
-
-                //M = Escapes the value with slashes before special characters.
-                case 'M':
-                {
-                    $value = filter_var($value, FILTER_SANITIZE_MAGIC_QUOTES);
-                    break;
-                }
-
-                //I = Remove all characters excluding digits, '+' and '-'.
-                case 'I':
-                {
-                    $value = filter_var($value, FILTER_SANITIZE_NUMBER_INT);
-                    break;
-                }
-
-                //U = Remove all characters excluding those allowable in a URL.
-                case 'U':
-                {
-                    $value = filter_var($value, FILTER_SANITIZE_URL);
-                    break;
-                }
-
-                //S = Remove all HTML and PHP tags.
-                case 'S':
-                {
-                    $value = filter_var($value, FILTER_SANITIZE_STRING);
-                    break;
-                }
-
-                //H = Converts special characters to HTML entities.
-                case 'H':
-                {
-                    $value = filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-                    break;
-                }
-
-                //T = Trim whitespace from beginning and end of string.
-                case 'T':
-                {
-                    $value = trim($value);
-                    break;
-                }
-
-                //If the option is not recognized, throw and error.
-                default:
-                {
-                    throw new \Error('Sanitize option: ' . $item . ' is invalid. Unable to sanitize.');
-                }
-            }
-        }
-
-        return($value);
+        return($data);
     }
 
     //Sanitizes the values in an array. Does not sanitize keys.
-    public static function SanitizeArray(ARRAY $data, $options = NULL)
+    public static function SanitizeArray(ARRAY $data, $options = NULL) : ARRAY
     {
         //Check if options are set. If not, default sanitize.
         if(empty($options))
@@ -324,13 +275,39 @@ class App
 
             return(filter_var_array($data, FILTER_SANITIZE_STRING | FILTER_SANITIZE_MAGIC_QUOTES));
         }
-        else
+
+        $options = self::MassageOptions($options);
+
+        //T = Trim whitespace from beginning and end of string.
+        if(in_array('T', $options))
         {
-            //If only a string convert to array for processing.
-            if(!is_array($options))
+            foreach($data as $key => &$value)
             {
-                $options = array($options);
+                $value = trim($value);
             }
+
+            unset($item, $options[array_search('T', $options)]);
+        }
+
+        //Check and perform filter_var sanitization.
+        if(!empty($options))
+        {
+            foreach($options as $item)
+            {
+                $data = filter_var_array($data, self::GetFilter($item));
+            }
+        }
+
+        return($data);
+    }
+
+    //Converts the options into uppercase and makes the string an array if only one item.
+    private static function MassageOptions($options) : ARRAY
+    {
+        //If only a string, convert to array for processing.
+        if(!is_array($options))
+        {
+            $options = array($options);
         }
 
         //Convert the options to uppercase to allow both lower and upper cases.
@@ -339,76 +316,56 @@ class App
             $item = strtoupper($item);
         }
 
-        unset($item);
+        return($options);
+    }
 
-        foreach($options as $item)
+    //Get PHP filter constant for the letter option.
+    private static function GetFilter($filterChar)
+    {
+        switch($filterChar)
         {
-            switch($item)
+            //E - Remove all characters excluding those allowable in a e-mail address.
+            case 'E':
             {
-                //E - Remove all characters excluding those allowable in a e-mail address.
-                case 'E':
-                {
-                    $data = filter_var_array($data, FILTER_SANITIZE_EMAIL);
-                    break;
-                }
+                return(FILTER_SANITIZE_EMAIL);
+            }
 
-                //M = Escapes the value with slashes before special characters.
-                case 'M':
-                {
-                    $data = filter_var_array($data, FILTER_SANITIZE_MAGIC_QUOTES);
-                    break;
-                }
+            //M = Escapes the value with slashes before special characters.
+            case 'M':
+            {
+                return(FILTER_SANITIZE_MAGIC_QUOTES);
+            }
 
-                //I = Remove all characters excluding digits, '+' and '-'.
-                case 'I':
-                {
-                    $data = filter_var_array($data, FILTER_SANITIZE_NUMBER_INT);
-                    break;
-                }
+            //I = Remove all characters excluding digits, '+' and '-'.
+            case 'I':
+            {
+                return(FILTER_SANITIZE_NUMBER_INT);
+            }
 
-                //U = Remove all characters excluding those allowable in a URL.
-                case 'U':
-                {
-                    $data = filter_var_array($data, FILTER_SANITIZE_URL);
-                    break;
-                }
+            //U = Remove all characters excluding those allowable in a URL.
+            case 'U':
+            {
+                return(FILTER_SANITIZE_URL);
+            }
 
-                //S = Remove all HTML and PHP tags.
-                case 'S':
-                {
-                    $data = filter_var_array($data, FILTER_SANITIZE_STRING);
-                    break;
-                }
+            //S = Remove all HTML and PHP tags.
+            case 'S':
+            {
+                return(FILTER_SANITIZE_STRING);
+            }
 
-                //H = Converts special characters to HTML entities.
-                case 'H':
-                {
-                    $data = filter_var_array($data, FILTER_SANITIZE_FULL_SPECIAL_CHARS);
-                    break;
-                }
+            //H = Converts special characters to HTML entities.
+            case 'H':
+            {
+                return(FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+            }
 
-                //T = Trim whitespace from beginning and end of string.
-                case 'T':
-                {
-                    foreach($data as $key => &$value)
-                    {
-                        $value = trim($value);
-                    }
-
-                    unset($item);
-
-                    break;
-                }
-
-                //If the option is not recognized, throw and error.
-                default:
-                {
-                    throw new \Error('Option: ' . $item . ' is invalid. Unable to sanitize.');
-                }
+            //If the option is not recognized, throw and error.
+            default:
+            {
+                throw new \Error('Option: ' . $item . ' is invalid. Unable to sanitize.');
             }
         }
-
-        return($data);
     }
 }
 ?>

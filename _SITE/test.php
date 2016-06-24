@@ -1,3 +1,11 @@
+<?php
+//Include Curator Session.
+require_once('../resource/lib/Session/App.php');
+$mySession = Curator\Session\App::getSession();
+
+require_once('../resource/lib/form/App.php');
+$myForm = new Curator\Form\App('myID', 'honey');
+ ?>
 <!DOCTYPE html>
 <html lang="en">
    <head>
@@ -11,17 +19,50 @@
       <link href="css/bootstrap.css" rel="stylesheet">
    </head>
    <body>
+
+       <?php
+
+       print_r($_POST);
+
+       echo "<br /><br />";
+       echo "<br /><br />";
+
+       echo "SESSION DATA: <br /><br />";
+       var_dump($_SESSION);
+       echo "SESSION DATA: <br /><br />";
+
+       if($myForm->Validate() === FALSE)
+       {
+           echo "Form is bad.";
+       }
+       else
+       {
+           echo "Form is Good.";
+       }
+       ?>
+
       <div class="container-fluid">
+
+          <form action="test.php" method="POST">
+            <div class="form-group">
+              <label for="exampleInputEmail1">Email address</label>
+              <input name="email" class="form-control" id="exampleInputEmail1" placeholder="Email">
+            </div>
+            <div class="form-group">
+              <label for="exampleInputPassword1">Password</label>
+              <input name="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+              <input name="honey" class="form-control" value="">
+              <input name="myID" class="form-control" value="<?=$myForm::AssignIDToken()?>">
+            </div>
+            <button type="submit" class="btn btn-default">Submit</button>
+          </form>
 <?php
 
-//Include Curator Session.
-require_once('../resource/lib/Session/App.php');
-$mySession = Curator\Session\App::getSession();
 
-require_once('../resource/lib/form/App.php');
-$myForm = new Curator\Form\App();
+echo "<br /><br />";
+echo "<br /><br />";
 
-$test = '  test ';
+$test = '  te"s<br />t ';
 
 $test_array = array
         (
@@ -58,7 +99,7 @@ var_dump($test);
 echo "<br /><br />";
 
 echo "PROCESSED TEST DATA: <br /><br />";
-var_dump($myForm::Sanitize($test, 't'));
+var_dump($myForm::Sanitize($test, array('s', 't')));
 echo "<br /><br />";
 
 echo "RAW TEST ARRAY DATA: <br /><br />";
@@ -66,12 +107,7 @@ var_dump($test_array);
 echo "<br /><br />";
 
 echo "PROCESSED TEST ARRAY DATA: <br /><br />";
-var_dump($myForm::SanitizeArray($test_array, array('S', 't')));
-echo "<br /><br />";
-
-echo "Assign Token: " . $myForm::AssignIDToken();
-echo "<br /><br />";
-echo "Generate ID Token: " . $myForm::GenerateIDToken();
+var_dump($myForm::SanitizeArray($test_array, 's'));
 echo "<br /><br />";
 
 $_POST['checkTest'] = 'asfasfasfasf sadas';
