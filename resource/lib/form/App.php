@@ -3,6 +3,14 @@
  * Curator Form is a class which ensures submitted form data is validated prior to your application processing the data.
  * This reduces bot form Forms and people looking to submit forms maliciously.
  *
+ * Naming Convention
+ * -----------------
+ * Classes    -> PascalCase
+ * Methods    -> PascalCase
+ * Properties -> camelCase
+ * Constants  -> UPPER_CASE
+ *
+ * Requires PHP 7+
  * Written with PHP Version 7.0.6
  *
  * @package    Curator Form
@@ -18,13 +26,14 @@ define('Curator\Form\SITENAME', 'CURATOR');
 class App
 {
     //Class Properties
-    private $honeyPot  = NULL;
-    private $formID    = NULL;
-    private $whiteList = array();
-    private $delay     = NULL;
+    private $honeyPot     = NULL;
+    private $formID       = NULL;
+    private $whiteList    = array();
+    private $delay        = NULL;
+    private $errorDetails = array();
 
     //Object initalization.
-    public function __construct(STRING $formID = NULL, STRING $honeyPot = NULL, ARRAY $whiteList = array(), $delay = NULL)
+    public function __construct(STRING $formID = NULL, STRING $honeyPot = NULL, ARRAY $whiteList = array(), INT $delay = NULL)
     {
         if(session_status() !== PHP_SESSION_ACTIVE)
         {
@@ -36,11 +45,11 @@ class App
             throw new \Error('Curator Form requires a Form ID. Assign a token.');
         }
 
-        //Set the field which will hold the hidden CAPTCHA value.
-        $this->honeyPot = $honeyPot;
-
         //Sets the form identification.
         $this->formID = $formID;
+
+        //Set the field which will hold the hidden CAPTCHA value.
+        $this->honeyPot = $honeyPot;
 
         //Sets the form POST field white list.
         $this->whiteList = $whiteList;
@@ -58,24 +67,36 @@ class App
             //Verify the form ID in the POST array matches the session form ID.
             if(!empty($_SESSION[SITENAME . '_formID']) && self::VerifyFormID() === FALSE)
             {
+                $this->CreateError('Form ID is invalid.', 1);
+
                 return(FALSE);
             }
 
-            //Verify the POST array matches the passed whitelist.
-            if(!empty($this->whiteList) && self::VerifyAprileList() === FALSE)
+            //Verify the invisible captcha is blank.
+            if(!empty($this->honeyPot))
             {
+                //Ensure the honey pot is set AND is empty.
+                if(!array_key_exists($this->honeyPot, $_POST) || self::VerifyInvisibleCAPTCHA() === FALSE)
+                {
+                    $this->CreateError('Honey pot is invalid.', 2);
+
+                    return(FALSE);
+                }
+            }
+
+            //Verify the POST array matches the passed whitelist.
+            if(!empty($this->whiteList) && self::VerifyWhiteList() === FALSE)
+            {
+                $this->CreateError('Whitelist does not match.', 3);
+
                 return(FALSE);
             }
 
             //Check for flooding. Check only happens if a delay is set.
             if(is_int($this->delay) === TRUE && self::FloodProtect() === FALSE)
             {
-                return(FALSE);
-            }
+                $this->CreateError('Repeat form submission outside of allowed time.', 4);
 
-            //Verify the invisible captcha is blank.
-            if($this->honeyPot !== NULL && self::VerifyInvisibleCAPTCHA() === FALSE)
-            {
                 return(FALSE);
             }
 
@@ -84,6 +105,8 @@ class App
         }
 
         //No POST data or post was not for this objects form.
+        $this->CreateError('Form not submitted (Form ID was not found).', 0);
+
         return(FALSE);
     }
 
@@ -92,23 +115,32 @@ class App
     {
         if(hash_equals($_POST[$this->formID],$_SESSION[SITENAME . '_formID']))
         {
-            //Form ID's are a match. Pass.
-            echo "FormID is Good.<br />";
             return(TRUE);
         }
 
-        //Form ID's do not match. Fail.
-        echo "FormID No Good.<br />";
+        return(FALSE);
+    }
+
+    //Validate the invisible CAPTCHA. TRUE = OK. FALSE = Failed.
+    private function VerifyInvisibleCAPTCHA() : BOOL
+    {
+        if($_POST[$this->honeyPot] == '')
+        {
+            //Fake field is empty. Pass.
+            return(TRUE);
+        }
+
+        //Fake field has unwanted data. Fail.
         return(FALSE);
     }
 
     //Verify the $_POST fields submitted. This acts as a whitelist. TRUE = OK. FALSE = Failed.
-    private function VerifyAprileList() : BOOL
+    private function VerifyWhiteList() : BOOL
     {
         //Check if amount of fields in POST match white list.
         if(count($_POST) === count($this->whiteList))
         {
-            foreach ($this->whiteList as $key)
+            foreach($this->whiteList as $key)
             {
                 if(!in_array($key, array_keys($_POST)))
                 {
@@ -128,64 +160,52 @@ class App
     //Confirm if the form was submitted more than once within the passed time (in seconds). TRUE = OK. FALSE = Failed.
     private function FloodProtect() : BOOL
     {
-        $submitTime = Sanitize($_POST[SITENAME . '_submitTime']);
-
         //If there is no Form time it is first submit. Set time.
-        if(empty($submitTime))
+        if(empty($_SESSION[SITENAME . '_formSubmitTime']))
         {
-            $_SESSION[SITENAME . '_submitTime'] = TIME();
+            $_SESSION[SITENAME . '_formSubmitTime'] = TIME();
 
             return(TRUE);
         }
 
+        //Obtain the last successfully submitted time. Sanitize with INT flag.
+        $submitTime = self::Sanitize($_SESSION[SITENAME . '_formSubmitTime'], 'I');
+
         //If the time since last Form is less than the designated delay time return FALSE (failed);
-        if($delay <= (TIME() - $submitTime))
+        if($this->delay >= (TIME() - $submitTime))
         {
             return(FALSE);
         }
 
         //Form occured after specified time. OK.
+        $_SESSION[SITENAME . '_formSubmitTime'] = TIME();
+
         return(TRUE);
     }
 
-    //Validate the invisible CAPTCHA. TRUE = OK. FALSE = Failed.
-    private function VerifyInvisibleCAPTCHA() : BOOL
-    {
-        if(empty($_POST[$this->honeyPot]))
-        {
-            //Fake field is empty. Pass.
-            echo "Honey Not Found!.<br />";
-            return(TRUE);
-        }
-
-        //Fake field has unwanted data. Fail.
-        echo "Honey Found!.<br />";
-        return(FALSE);
-    }
-
     //Generate unique & random set of characters.
-    private static function GenerateIDToken()
+    private static function GenerateIDToken() : STRING
     {
         return(base64_encode(random_bytes(15)));
     }
 
     //Creates and sets a random unique value which will be used for form validation on submisison.
-    public static function AssignIDToken()
+    public static function AssignIDToken() : STRING
     {
         return($_SESSION[SITENAME . '_formID'] = self::GenerateIDToken());
     }
 
-    //Checks the POST value to ensure it matches the passed type.
-    public static function CheckIF(STRING $postValue, STRING $type =  NULL) : BOOL
+    //Checks the value to ensure it matches the passed type.
+    public static function CheckIF($value, STRING $type =  NULL) : BOOL
     {
-        if(!empty($_POST[$postValue]))
+        if(isset($value))
         {
             switch(strtoupper($type))
             {
                 //Check if value is a number.
                 case 'NUMBER':
                 {
-                    if(is_int($_POST[$postValue]) || is_float($_POST[$postValue] + 0))
+                    if(is_numeric($value))
                     {
                         return(TRUE);
                     }
@@ -195,7 +215,7 @@ class App
                 //Check if value is alphabetical.
                 case 'ALPHA':
                 {
-                    if(ctype_alpha($_POST[$postValue]))
+                    if(ctype_alpha($value))
                     {
                         return(TRUE);
                     }
@@ -205,7 +225,7 @@ class App
                 //Check if value is alphanumeric.
                 case 'ALPHANUMERIC':
                 {
-                    if(ctype_alnum($_POST[$postValue]))
+                    if(ctype_alnum($value))
                     {
                         return(TRUE);
                     }
@@ -215,7 +235,7 @@ class App
                 //Check if value is a valid e-mail.
                 case 'EMAIL':
                 {
-                    if(filter_var($_POST[$postValue], FILTER_VALIDATE_EMAIL))
+                    if(filter_var($value, FILTER_VALIDATE_EMAIL))
                     {
                         return(TRUE);
                     }
@@ -366,6 +386,19 @@ class App
                 throw new \Error('Option: ' . $item . ' is invalid. Unable to sanitize.');
             }
         }
+    }
+
+    //Create form error data.
+    private function CreateError(STRING $message, INT $code)
+    {
+        $this->errorDetails['Message'] = $message;
+        $this->errorDetails['Code']    = $code;
+    }
+
+    //Return the error details.
+    public function GetError() : ARRAY
+    {
+        return($this->errorDetails);
     }
 }
 ?>
