@@ -2,6 +2,14 @@
  /*
  * Curator Session is a class which manages user sessions and cookies.
  *
+ * Naming Convention
+ * -----------------
+ * Classes    -> PascalCase
+ * Methods    -> PascalCase
+ * Properties -> camelCase
+ * Constants  -> UPPER_CASE
+ *
+ * Requires PHP 7+
  * Written with PHP Version 7.0.6
  *
  * @package    Curator Session
@@ -76,7 +84,7 @@ class App
         (
             'use_cookies'             => SESSION_USE_COOKIES,
             'use_only_cookies'        => SESSION_USE_ONLY_COOKIES,
-            'cookie_lifetime'         =>SESSION_COOKIE_LIFETIME,
+            'cookie_lifetime'         => SESSION_COOKIE_LIFETIME,
             'cookie_httponly'         => SESSION_COOKIE_HTTPONLY,
             'use_trans_sid'           => SESSION_USE_TRANS_SID,
             'use_strict_mode'         => SESSION_USE_STRICT_MODE,
