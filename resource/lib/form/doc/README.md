@@ -1,5 +1,5 @@
 #Curator Form
-This class is intended to be used for processing web form data. Curator Form offers a variety of tools that help protect your forms from unwanted submissions. This includes protection from bots, spammers or people looking to perform malicious acts.
+This class is intended to be used for processing web form submissions. Curator Form offers a variety of tools that help protect your forms from unwanted submissions. This includes protection from bots, spammers or people looking to perform malicious acts.
 
 The class only support the POST method for form submission.
 
@@ -32,10 +32,10 @@ Finally you will then create your Curator Form object. You are required to pass 
 $myForm = new Curator\Form\App('TestForm');
 ```
 
->*Note*: Curator Form uses sessions and must be started before creating the object.
+**Note**: Curator Form uses sessions which must be started before creating the object.
 
 **NOTICE:**
->This class is namespaced to Curator\Form for your convience. You will only need to worry about the namespace for the inital object creation.
+>This class is namespaced to Curator\Form for your convenience. You will only need to worry about the namespace for the initial object creation.
 
 #### Options
 
@@ -50,17 +50,17 @@ $myForm = new Curator\Form\App('TestForm', $options);
 
 The options array allows you to add additional checks to your form submissions increasing the protection level.
 
-+ *HoneyPot*: This option tells Curator Form to enable the Honey Pot feature which adds bot protection to your forms. The value passed to HoneyPot is the name of your honey pot input.
++ **HoneyPot**: This option tells Curator Form to enable the Honey Pot feature which adds bot protection to your forms. The value passed to HoneyPot is the name of your honey pot input.
 
-+ *WhiteList*: This option tells Curator Form to compare the form POST keys to your white list. If there are too many or few POST keys, or, if the keys do not match validation of your form submission will fail.
++ **WhiteList**: This option tells Curator Form to compare the form POST keys to your white list. If there are too many or few POST keys, or, if the keys do not match validation of your form submission will fail.
 
-+ *Delay*: This option allows you to customize how much time must pass between each form submission. This prevents submission spamming.
++ **Delay**: This option allows you to customize how much time must pass between each form submission. This prevents submission spamming.
 
 #### Form Elements
 
 Once you have created the Curator Form object with your specific options you must add specific inputs to your form in order to be protected.
 
-+ *FormID*: A FormID is required by Curator Form and should be added as an input to your form. This is done using the AssignIDToken() method. The name of this input must match the FormID string passed when the Curator Form object was created. Autocomplete should be set to "off" to prevent false positive results.
++ **FormID**: A FormID is required by Curator Form and should be added as an input to your form. This is done using the AssignIDToken() method. The name of this input must match the FormID string passed when the Curator Form object was created. Autocomplete should be set to "off" to prevent false positive results.
 
 ```php
 $myForm = new Curator\Form\App('TestForm', $options);
@@ -68,17 +68,17 @@ $myForm = new Curator\Form\App('TestForm', $options);
 <input name="TestForm" type="hidden" autocomplete="off" value="<?=$myForm::AssignIDToken()?>">
 ```
 
->This input should be hidden using either *type="hidden"* or *display:none (CSS)*.
+>This input should be hidden using either **type="hidden"** or **display:none (CSS)**.
 
-+ *HoneyPot*: If used, the Honey Pot input should be inserted into your form with the same name passed in the HoneyPot option. The value *must* be set to "" and autocomplete = "off".
++ **HoneyPot**: If used, the Honey Pot input should be inserted into your form with the same name passed in the HoneyPot option. The value **must** be set to "" and autocomplete = "off".
 
 ```php
 <input name="honeyPot" value="" autocomplete="off">
 ```
 
->This input should be hidden using either *type="hidden"* or *display:none (CSS)*. The honey pot check fails if any characters are found in the POST honey pot variable.
+>This input should be hidden using either **type="hidden"** or **display:none (CSS)**. The honey pot check fails if any characters are found in the POST honey pot variable.
 
-+ *WhiteList*: If a white list has been provided to Curator Form *all* POST key's must match those found in your form. This includes the additional inputs necessary by Curator Form.
++ **WhiteList**: If a white list has been provided to Curator Form *all* POST key's must match those found in your form. This includes the additional inputs necessary by Curator Form.
 
 ```php
 $myWhiteList = array('email', 'password', 'honeyPot', 'TestForm');
@@ -118,7 +118,7 @@ $myForm = new Curator\Form\App('TestForm', $options);
 </html>
 ```
 
->*Note*: Curator Form uses sessions and must be started before creating the object.
+**Note**: Curator Form uses sessions and must be started before creating the object.
 
 #### Form Validation
 
@@ -154,13 +154,13 @@ echo 'The form error code is: ' . $formError['Code'];
 
 ###### Error Codes
 
-+ *0*: Form not submitted (Form ID was not found).
-+ *1*: Form ID is invalid.
-+ *2*: Honey pot is invalid.
-+ *3*: Whitelist does not match.
-+ *4*: Repeat form submission outside of allowed time.
++ **0**: Form not submitted (Form ID was not found).
++ **1**: Form ID is invalid.
++ **2**: Honey pot is invalid.
++ **3**: Whitelist does not match.
++ **4**: Repeat form submission outside of allowed time.
 
->*Note*: Codes can be used for managing custom error messages to your user. Alternately you may use the Message string for debugging or logging.
+**Note**: Codes can be used for managing custom error messages to your user. Alternately you may use the Message string for debugging or logging.
 
 #### Validation
 
@@ -172,13 +172,13 @@ $myForm::CheckIF($data, 'NUMBER');
 
 ###### Options
 
-+ *NUMBER*: Verifies if the data passed only consists of a valid number. This includes INT and FLOAT as well as -+ symbols.
++ **NUMBER**: Verifies if the data passed only consists of a valid number. This includes INT and FLOAT as well as -+ symbols.
 
-+ *ALPHA*: Verifies if the data passed only consists of alphabetical characters.
++ **ALPHA**: Verifies if the data passed only consists of alphabetical characters.
 
-+ *ALPHANUMERIC*: Verifies if the data passed only consists of alphanumeric characters.
++ **ALPHANUMERIC**: Verifies if the data passed only consists of alphanumeric characters.
 
-+ *EMAIL*: Verifies if the data passed only consists of characters allowable in an e-mail address.
++ **EMAIL**: Verifies if the data passed only consists of characters allowable in an e-mail address.
 
 #### Data Sanitization
 
@@ -196,18 +196,18 @@ $cleanDataArray = $myForm::SanitizeArray($data, array('T', 'N'));
 
 Both Sanitize() and SanitizeArray() can accept one or many options. Each option sanitizes the data in a different way.
 
-+ '*T*': Trims the data of spaces at the beginning and end of the string.
++ '**T**': Trims the data of spaces at the beginning and end of the string.
 
-+ '*E*': Applies the FILTER_SANITIZE_EMAIL filter.
++ '**E**': Applies the FILTER_SANITIZE_EMAIL filter.
 
-+ '*M*': Applies the FILTER_SANITIZE_MAGIC_QUOTES filter.
++ '**M**': Applies the FILTER_SANITIZE_MAGIC_QUOTES filter.
 
-+ '*N*': Applies the FILTER_SANITIZE_NUMBER_INT filter.
++ '**N**': Applies the FILTER_SANITIZE_NUMBER_INT filter.
 
-+ '*U*': Applies the FILTER_SANITIZE_URL filter.
++ '**U**': Applies the FILTER_SANITIZE_URL filter.
 
-+ '*S*': Applies the FILTER_SANITIZE_STRING filter.
++ '**S**': Applies the FILTER_SANITIZE_STRING filter.
 
-+ '*H*': Applies the FILTER_SANITIZE_FULL_SPECIAL_CHARS filter.
++ '**H**': Applies the FILTER_SANITIZE_FULL_SPECIAL_CHARS filter.
 
->*Note*: If no options are provided the default sanitization method will apply trim(), addslashes() and the FILTER_SANITIZE_STRING filter.
+**Note**: If no options are provided the default sanitization method will apply trim(), addslashes() and the FILTER_SANITIZE_STRING filter.
