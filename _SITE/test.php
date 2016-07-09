@@ -13,35 +13,45 @@ require_once('../resource/lib/form/App.php');
 $myWhiteList = array('email', 'password', 'honeyPot', 'UserForm');
 
 //Create form object. Needed for page with form and form processing page.
-$myForm = new Curator\Form\App('UserForm', 'honeyPot', $myWhiteList, 10);
+$options = array('HoneyPot' => 'honeyPot', 'WhiteList' => $myWhiteList, 'Delay' => 10);
+
+$myForm = new Curator\Form\App('UserForm');
+
     dump('POST', $_POST);
     dump('SESSION', $_SESSION);
 
 //The Validate() method returns TRUE or FALSE if the form validate passes or not.
 $formValidation = $myForm->Validate();
+
     dump('Form ID', $formValidation);
 
     dump('Error Details', $myForm->GetError());
 
-    $test = 0;
+    $data = array(
+        'Test Data',
+        ' Test Data ',
+        ' Test Data',
+        'a!b@c#d$h%i^j&k*l(m)n-o_q=u+sw|x\y]z}a[b{c;d:e,f<g.h>i/j?k`l~',
+        'test""test',
+        ' test""test ',
+        '<b>Test Data</b>',
+        ' <b>Test Data</b> ',
+        'Test</b>Data',
+        'Test<b>Data',
+        ' <b>T<e"s\t D/a?t`a</b> ',
+        ' <?php<b>T<e"s\t D/a?t`a</b>?> ',
+        ' <?php <b>T<e"s\t D/a?t`a</b> ?> ',
+        'fatherfn2k@hotmail.com',
+        'asd123asd12d12d12d',
+        'http://www.google.com',
+        'www.google.com',
+        'google.com',
+    );
 
-    dump('CheckIF: Number(123123)', $myForm->CheckIF(123123, 'Number'));
-    dump('CheckIF: Number(-12312)', $myForm->CheckIF(-12312, 'Number'));
-    dump('CheckIF: Number(0)', $myForm->CheckIF(0, 'Number'));
-    dump('CheckIF: Number(TRUE)', $myForm->CheckIF(TRUE, 'Number'));
-    dump('CheckIF: Number(FALSE)', $myForm->CheckIF(FALSE, 'Number'));
-    dump('CheckIF: Number("123123")', $myForm->CheckIF('123123', 'Number'));
-    dump('CheckIF: Number("-12312")', $myForm->CheckIF('-12312', 'Number'));
-    dump('CheckIF: Number("0")', $myForm->CheckIF('0', 'Number'));
-    dump('CheckIF: Number("TRUE")', $myForm->CheckIF('TRUE', 'Number'));
-    dump('CheckIF: Number("FALSE")', $myForm->CheckIF('FALSE', 'Number'));
-    dump('CheckIF: Number($test)', $myForm->CheckIF($test, 'Number'));
-    dump('CheckIF: Number(0.3)', $myForm->CheckIF(0.3, 'Number'));
-    dump('CheckIF: Number(POST EMAIL)', $myForm->CheckIF($_POST['email'], 'Number'));
+    $optionz = array('T', 'N', 'T');
 
-    //CheckIF (ALPHA)
-    //CheckIF (ALPHANUMERIC)
-    //CheckIF (EMAIL)
+    dump($data, $myForm->SanitizeArray($data, $optionz));
+
     //Sanitize
     //SanitizeArray
 ?>
@@ -65,7 +75,7 @@ $formValidation = $myForm->Validate();
                         <div class="form-group">
                             <label>Email address</label>
                             <input name="email" class="form-control" id="email">
-                        </diav>
+                        </div>
                         <div class="form-group">
                             <label>Password</label>
                             <input name="password" class="form-control" id="password" placeholder="Password">
@@ -83,7 +93,7 @@ $formValidation = $myForm->Validate();
                             <!-- AssignIDToken() method is used to assign the form ID to a form element. -->
                             <!-- Element name should be the name of the ID name passed to Curator Form -->
                             <!-- This element should be hidden (type='hidden' or display:none). -->
-                            <input name="UserForm" class="form-control" value="<?=$myForm::AssignIDToken()?>">
+                            <input name="UserForm" class="form-control" autocomplete="off" value="<?=$myForm::AssignIDToken()?>">
                         </div>
                         <div class="form-group">
                             <button type="submit" class="btn btn-default">Submit</button>
