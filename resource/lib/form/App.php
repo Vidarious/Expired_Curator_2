@@ -33,29 +33,41 @@ class App
     private $errorDetails = array();
 
     //Object initalization.
-    public function __construct(STRING $formID = NULL, STRING $honeyPot = NULL, ARRAY $whiteList = array(), INT $delay = NULL)
+    public function __construct(STRING $formID, ARRAY $options = array())
     {
+        //Verify session is active.
         if(session_status() !== PHP_SESSION_ACTIVE)
         {
             throw new \Error('Curator Form requires sessions. Please start them prior to creating a new object.');
         }
 
-        if($formID === NULL)
+        if(isset($formID))
+        {
+            //Sets the form identification.
+            $this->formID = $formID;
+        }
+        else
         {
             throw new \Error('Curator Form requires a Form ID. Assign a token.');
         }
 
-        //Sets the form identification.
-        $this->formID = $formID;
+        if(isset($options['HoneyPot']))
+        {
+            //Set the field which will hold the hidden CAPTCHA value.
+            $this->honeyPot = $options['HoneyPot'];
+        }
 
-        //Set the field which will hold the hidden CAPTCHA value.
-        $this->honeyPot = $honeyPot;
+        if(isset($options['WhiteList']))
+        {
+            //Sets the form POST field white list.
+            $this->whiteList = $options['WhiteList'];
+        }
 
-        //Sets the form POST field white list.
-        $this->whiteList = $whiteList;
-
-        //Sets the time (in seconds) that must elapse before another form Form will be processed.
-        $this->delay = $delay;
+        if(isset($options['Delay']))
+        {
+            //Sets the time (in seconds) that must elapse before another form Form will be processed.
+            $this->delay = $options['Delay'];
+        }
     }
 
     //Checks the state of the submitted form data. TRUE = Form is OK. FALSE = Form is No Good.
@@ -251,6 +263,11 @@ class App
     //Sanitizes the value passed with the options.
     public static function Sanitize($data, $options = NULL)
     {
+        if(is_array($data))
+        {
+            throw new \Error('Sanitize() does not accept arrays. Use SanitizeArray() instead.');
+        }
+
         //Convert options to allow for lower and uppercase.
         if(empty($options))
         {
@@ -265,7 +282,7 @@ class App
         {
             $data = trim($data);
 
-            unset($item, $options[array_search('T', $options)]);
+            unset($options[array_search('T', $options)]);
         }
 
         //Check and perform filter_var sanitization.
@@ -281,19 +298,24 @@ class App
     }
 
     //Sanitizes the values in an array. Does not sanitize keys.
-    public static function SanitizeArray(ARRAY $data, $options = NULL) : ARRAY
+    public static function SanitizeArray($data, $options = NULL) : ARRAY
     {
+        if(!is_array($data))
+        {
+            throw new \Error('SanitizeArray() only accepts arrays. Use Sanitize() instead.');
+        }
+
         //Check if options are set. If not, default sanitize.
         if(empty($options))
         {
             foreach($data as $key => &$value)
             {
-                $value = trim($value);
+                $value = addslashes(trim($value));
             }
 
             unset($value);
 
-            return(filter_var_array($data, FILTER_SANITIZE_STRING | FILTER_SANITIZE_MAGIC_QUOTES));
+            return(filter_var_array($data, FILTER_SANITIZE_STRING));
         }
 
         $options = self::MassageOptions($options);
@@ -330,6 +352,9 @@ class App
             $options = array($options);
         }
 
+        //Remove any duplicates.
+        $options = array_unique($options);
+
         //Convert the options to uppercase to allow both lower and upper cases.
         foreach($options as &$item)
         {
@@ -356,8 +381,8 @@ class App
                 return(FILTER_SANITIZE_MAGIC_QUOTES);
             }
 
-            //I = Remove all characters excluding digits, '+' and '-'.
-            case 'I':
+            //N = Remove all characters excluding numbers, '+' and '-'.
+            case 'N':
             {
                 return(FILTER_SANITIZE_NUMBER_INT);
             }
@@ -383,7 +408,7 @@ class App
             //If the option is not recognized, throw and error.
             default:
             {
-                throw new \Error('Option: ' . $item . ' is invalid. Unable to sanitize.');
+                throw new \Error('Option: ' . $filterChar . ' is invalid. Unable to sanitize.');
             }
         }
     }
