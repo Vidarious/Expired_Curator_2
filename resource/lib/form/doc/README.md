@@ -48,13 +48,15 @@ $options = array('HoneyPot' => 'honeyPot', 'WhiteList' => $myWhiteList, 'Delay' 
 $myForm = new Curator\Form\App('TestForm', $options);
 ```
 
-The options array allows you to add additional checks to your form submissions increasing the protection level.
+The options array allows you to add additional checks to your form submissions, increasing the protection level.
 
 + **HoneyPot**: This option tells Curator Form to enable the Honey Pot feature which adds bot protection to your forms. The value passed to HoneyPot is the name of your honey pot input.
 
 + **WhiteList**: This option tells Curator Form to compare the form POST keys to your white list. If there are too many or few POST keys, or, if the keys do not match validation of your form submission will fail.
 
 + **Delay**: This option allows you to customize how much time must pass between each form submission. This prevents submission spamming.
+
+---
 
 #### Form Elements
 
@@ -89,17 +91,23 @@ $myWhiteList = array('email', 'password', 'honeyPot', 'TestForm');
 <input name="honeyPot" value="" autocomplete="off">
 ```
 
+---
+
 #### Putting It All Together
 
 Below is an example of all components of a form protected by Curator Form.
 
 ```php
+...
+
 require_once('form/App.php');
 
 $myWhiteList = array('email', 'password', 'honeyPot', 'TestForm');
 $options = array('HoneyPot' => 'honeyPot', 'WhiteList' => $myWhiteList, 'Delay' => 10);
 
 $myForm = new Curator\Form\App('TestForm', $options);
+
+...
 
 <html>
     <body>
@@ -120,9 +128,11 @@ $myForm = new Curator\Form\App('TestForm', $options);
 
 **Note**: Curator Form uses sessions and must be started before creating the object.
 
+---
+
 #### Form Validation
 
-Once submitted you validate the form using the Validate() method. If the form was submitted and all checks passed Validate() will return TRUE while if a issue was found, Validate will return FALSE to indicate a problem.
+Once submitted, you validate the form using the Validate() method. If the form was submitted and all checks passed Validate() will return TRUE while if a issue was found, Validate will return FALSE to indicate a problem.
 
 ```php
 if($myForm->Validate() === TRUE)
@@ -137,13 +147,7 @@ else
 
 #### Managing Failed Validation (Errors)
 
-When form validation fails an error and error code can be obtained so you may process the issue accordingly. This is done with the GetError() method which returns an array.
-
-```php
-var_dump($myForm->GetError());
-```
-
-When you call GetError() you can assign it to a variable to process the error.
+When form validation fails an error message and code can be obtained so you may process the issue accordingly. This is done with the GetError() method which returns an array. When you call GetError() you can assign it to a variable to process the error.
 
 ```php
 $formError = $myForm->GetError();
@@ -162,6 +166,8 @@ echo 'The form error code is: ' . $formError['Code'];
 
 **Note**: Codes can be used for managing custom error messages to your user. Alternately you may use the Message string for debugging or logging.
 
+---
+
 #### Validation
 
 Curator Form includes a data validation method called CheckIF(). This allows you to confirm if data passed is of a specific type.
@@ -179,6 +185,8 @@ $myForm::CheckIF($data, 'NUMBER');
 + **ALPHANUMERIC**: Verifies if the data passed only consists of alphanumeric characters.
 
 + **EMAIL**: Verifies if the data passed only consists of characters allowable in an e-mail address.
+
+---
 
 #### Data Sanitization
 
