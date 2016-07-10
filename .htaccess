@@ -1,3 +1,0 @@
-#Deny access folder and file access.
-Options All -Indexes
-deny from all
